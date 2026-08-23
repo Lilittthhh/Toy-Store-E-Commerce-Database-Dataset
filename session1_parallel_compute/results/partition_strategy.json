@@ -1,0 +1,58 @@
+{
+  "chosen_partition_key": "website_session_id",
+  "entity_owner": "WebsiteSession (website_sessions.csv)",
+  "relationship": "WebsiteSession 1 -> many WebsitePageviews",
+  "predicted_records_per_key": {
+    "key": "website_session_id",
+    "distinct": 472871,
+    "min": 1,
+    "median": 2.0,
+    "max": 7,
+    "mean": 2.5125753112371028,
+    "skew_ratio_max_min": 7.0,
+    "largest_key": "79850"
+  },
+  "workload": "Compute pageview count, session duration, conversion flag, order revenue, and gross profit per website_session_id.",
+  "candidates": {
+    "website_session_id": {
+      "key": "website_session_id",
+      "distinct": 472871,
+      "min": 1,
+      "median": 2.0,
+      "max": 7,
+      "mean": 2.5125753112371028,
+      "skew_ratio_max_min": 7.0,
+      "largest_key": "79850"
+    },
+    "user_id": {
+      "key": "user_id",
+      "distinct": 394318,
+      "min": 1,
+      "median": 2.0,
+      "max": 26,
+      "mean": 3.0131112452386146,
+      "skew_ratio_max_min": 26.0,
+      "largest_key": "273501"
+    },
+    "utm_source": {
+      "key": "utm_source",
+      "distinct": 4,
+      "min": 17608,
+      "median": 187987.0,
+      "max": 794542,
+      "mean": 297031.0,
+      "skew_ratio_max_min": 45.12392094502499,
+      "largest_key": "gsearch"
+    },
+    "device_type": {
+      "key": "device_type",
+      "distinct": 2,
+      "min": 306184,
+      "median": 594062.0,
+      "max": 881940,
+      "mean": 594062.0,
+      "skew_ratio_max_min": 2.8804248425783188,
+      "largest_key": "desktop"
+    }
+  }
+}

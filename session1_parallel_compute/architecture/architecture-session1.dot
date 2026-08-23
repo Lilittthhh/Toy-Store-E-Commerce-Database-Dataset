@@ -1,0 +1,38 @@
+
+digraph Architecture {
+  rankdir=LR;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=17;
+  label=<<b>Toy Store E-Commerce — Session 1 Parallel-Compute Layer</b><br/>
+  <font point-size="11">customer journey, conversion and revenue analytics</font><br/>>;
+
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=9];
+  edge [color="#2E74B5"];
+
+  pv [label="website_pageviews.csv\n1,188,124 events" fillcolor="#D9EAF7"];
+  sess [label="website_sessions.csv\n472,871 sessions" fillcolor="#D9EAF7"];
+  ord [label="orders.csv\n32,313 orders" fillcolor="#FFF2CC"];
+
+  profile [label="profile_files.py\nprofile + PK/FK checks" fillcolor="#FFF2CC"];
+  join [label="load_and_join.py\npageviews -> sessions -> orders\nrow reconciliation" fillcolor="#FFF2CC"];
+  repart [label="repartition(4, 'website_session_id')" fillcolor="#E2EFDA"];
+  agg [label="parallel_compute.py\npageviews · duration · conversion\nrevenue · gross profit" fillcolor="#E2EFDA"];
+  base [label="sequential_baseline.py\npandas reference" fillcolor="#FCE4D6"];
+  valid [label="correctness validation" fillcolor="#FCE4D6"];
+  out [label="session_journey_metrics.parquet" fillcolor="#D9EAF7" color="#1F3864"];
+  bench [label="session1_benchmark.csv" fillcolor="#D9EAF7" color="#1F3864"];
+
+  pv -> profile;
+  sess -> profile;
+  ord -> profile;
+  profile -> join;
+  join -> repart;
+  repart -> agg;
+  join -> base;
+  agg -> valid;
+  base -> valid;
+  valid -> out;
+  agg -> bench;
+}

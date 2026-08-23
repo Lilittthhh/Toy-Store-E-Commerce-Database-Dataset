@@ -1,0 +1,3 @@
+session1_parallel_compute/.venv/
+session1_parallel_compute/__pycache__/
+*.pyc

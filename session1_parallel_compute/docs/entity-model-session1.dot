@@ -1,0 +1,73 @@
+
+digraph EntityModel {
+  rankdir=LR;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=17;
+  label=<<b>Toy Store E-Commerce — Session 1 Entity Model</b><br/>
+  <font point-size="11">customer journey + conversion + revenue</font><br/>>;
+
+  node [shape=plaintext fontname="Helvetica"];
+  edge [color="#2E74B5" fontname="Helvetica" fontsize=9 penwidth=1.5];
+
+  Session [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#D9EAF7"><b>WebsiteSession</b><br/><font point-size="9">Event/Entity · website_sessions.csv</font></td></tr>
+      <tr><td align="left"><b>website_session_id : Integer «PK» «partitionKey»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">user_id : Integer</td></tr>
+      <tr><td align="left">utm_source / campaign / content</td></tr>
+      <tr><td align="left">device_type : String</td></tr>
+    </table>>];
+
+  Pageview [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#D9EAF7"><b>WebsitePageview</b><br/><font point-size="9">Event · website_pageviews.csv</font></td></tr>
+      <tr><td align="left"><b>website_pageview_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp <b>«eventTime»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">pageview_url : String</td></tr>
+    </table>>];
+
+  Order [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FFF2CC"><b>Order</b><br/><font point-size="9">Event · orders.csv</font></td></tr>
+      <tr><td align="left"><b>order_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">price_usd : Double «revenueMetric»</td></tr>
+      <tr><td align="left">cogs_usd : Double</td></tr>
+    </table>>];
+
+  Item [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#E2EFDA"><b>OrderItem</b><br/><font point-size="9">Event · order_items.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">product_id : Integer «FK»</td></tr>
+      <tr><td align="left">price_usd / cogs_usd : Double</td></tr>
+    </table>>];
+
+  Product [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#F2F2F2"><b>Product</b><br/><font point-size="9">Entity · products.csv</font></td></tr>
+      <tr><td align="left"><b>product_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">product_name : String</td></tr>
+    </table>>];
+
+  Refund [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FCE4D6"><b>OrderItemRefund</b><br/><font point-size="9">Event · order_item_refunds.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_refund_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_item_id : Integer «FK»</td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">refund_amount_usd : Double</td></tr>
+    </table>>];
+
+  Session -> Pageview [label="1    1..*\nwebsite_session_id"];
+  Session -> Order [label="1    0..1\nwebsite_session_id"];
+  Order -> Item [label="1    1..*\norder_id"];
+  Product -> Item [label="1    0..*\nproduct_id"];
+  Item -> Refund [label="1    0..1\norder_item_id"];
+}

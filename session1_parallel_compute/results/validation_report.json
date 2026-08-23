@@ -1,0 +1,25 @@
+{
+  "join": {
+    "rows_before": 1188124,
+    "rows_after": 1188124,
+    "join_seconds": 13.557746700011194,
+    "broadcast_hash_join_occurrences": 2,
+    "sort_merge_join_occurrences": 2
+  },
+  "configured_partitions": 4,
+  "actual_partitions": 4,
+  "parallel_seconds": 1.6216486000048462,
+  "validation": {
+    "parallel_groups": 472871,
+    "baseline_groups": 472871,
+    "max_differences": {
+      "pageview_count": 0.0,
+      "session_duration_seconds": 0.0,
+      "converted": 0.0,
+      "order_revenue_usd": 0.0,
+      "gross_profit_usd": 0.0
+    },
+    "tolerance": 1e-06,
+    "result": "PASS"
+  }
+}
