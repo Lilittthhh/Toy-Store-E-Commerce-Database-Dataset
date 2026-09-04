@@ -1,0 +1,23 @@
+RetailMetrics Session 2 recommended execution order
+
+Required preflight:
+1. handover_verify.py
+2. setup_streaming.py
+
+Visible Session 2 pipeline:
+1. self_test.py --pre
+   - verifies backbone readiness, stable routing, and group-offset isolation
+   - event-dependent checks are marked PENDING, not falsely passed
+2. produce_events.py --reset
+3. self_test.py --post
+   - validates ordering, non-destructive reads, replay, durability, and stored routing against the actual retained events
+4. consumers.py
+5. reconcile.py
+6. failure_recovery.py
+7. replay_suite.py
+
+The GUI presents six stages: Log self-test, Produce, Consume, Reconcile, Failure & recovery, Replay.
+During Produce, the GUI automatically runs the post-produce guarantee validation before moving to Consume.
+
+Or run: python run_pipeline.py
+Or use the GUI Run everything button.

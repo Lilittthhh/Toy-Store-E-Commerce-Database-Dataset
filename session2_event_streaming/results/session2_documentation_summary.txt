@@ -1,0 +1,200 @@
+RETAILMETRICS — SESSION 2 DOCUMENTATION EVIDENCE SUMMARY
+==============================================================================
+Generated from the current files in session2_event_streaming/results/.
+This is a helper file for filling the professor's Session 2 submission template.
+Delete this helper file and its generator later if you want a clean final repo.
+
+PART 2 — SESSION 1 HANDOVER VERIFICATION
+------------------------------------------------------------------------------
+Dataset/source path: C:\Users\ureha\OneDrive\Desktop\MIT\MIT261-UTTO\session1_parallel_compute\datasets
+Source dataset files verified: YES
+Session 1 batch output: C:\Users\ureha\OneDrive\Desktop\MIT\MIT261-UTTO\session1_parallel_compute\results\session_journey_metrics.parquet
+Session 1 group count: 472,871
+Session 1 aggregate order revenue: $1,938,509.75
+Session 1 aggregate gross profit: $1,216,139.50
+Partition key inherited: website_session_id
+Event-time field inherited: created_at
+Overall handover result: PASS
+
+PART 3 — EVENT SCHEMA AND TOPIC DESIGN
+------------------------------------------------------------------------------
+Topic name: commerce.activity.recorded
+Event types: pageview.recorded, refund.recorded
+Schema version: 1
+Number of partitions: 4
+Partition key: website_session_id
+Event-time field: created_at
+Why this key: website_session_id preserves affinity so all activity for one website session maps consistently to one logical partition.
+Enrichment fields: session attributes, order/conversion facts, revenue, COGS, gross profit, and refund/session linkage as applicable.
+Enrichment row-count guard: PASS
+Pageviews before enrichment: 1,188,124
+Pageviews after enrichment: 1,188,124
+Refunds before enrichment: 1,731
+Refunds after enrichment: 1,731
+
+PART 4 — DURABLE LOG GUARANTEES
+------------------------------------------------------------------------------
+Stable key routing: PASS — stored routing mismatches=0
+Ordering within a partition: PASS — out-of-order pairs=0
+Non-destructive read: PASS — first read=296,607; second read=296,607
+Consumer group isolation: PASS — group A lag=0; group B lag=1,189,855 retained events
+Replay: PASS — reset exposes retained history; replayable events=1,189,855
+Durability: PASS — retained across new connection=1,189,855 events
+Backbone configuration: PASS — streaming tables remained available after Produce
+Backbone limitation: single-node PostgreSQL durable log; no Kafka/Redpanda-style broker replication, leader election, or multi-node HA.
+
+PART 5 — PRODUCER: ORDERING, VOLUME, AND PARTITIONING
+------------------------------------------------------------------------------
+Events produced: 1,189,855
+Pageview events: 1,188,124
+Refund events: 1,731
+Distinct partition-key values: 472,871
+Event-time range: 2012-03-19 08:04:16 -> 2015-04-01 18:11:08
+Sort before publishing: ORDER BY event_time, event_id before insertion
+Production time: 241.068 seconds
+Throughput: 4,935 events/second
+Log size: 2363.53 MB
+Partition skew ratio: 1.01 : 1
+Partition 0: 296,607 events
+Partition 1: 297,760 events
+Partition 2: 297,357 events
+Partition 3: 298,131 events
+
+PART 6 — CONSUMER GROUPS AND FAN-OUT
+------------------------------------------------------------------------------
+session-metrics-projector: processed=1,188,124, seconds=209.1791041000106, events/sec=5,679, final lag=0
+conversion-audit-writer: processed=1,189,855, seconds=20.39163590001408, events/sec=58,350, final lag=0
+refund-monitor: processed=1,189,855, seconds=12.884512099990388, events/sec=92,347, final lag=0
+Producer source-code changes required to add third consumer: 0
+Second run behavior: an already-caught-up consumer sees no new retained events beyond its committed offset unless its offset is reset/replayed.
+Brand-new group behavior: a new group can start from the retained beginning and independently read the full event history.
+
+PART 7 — DELIVERY SEMANTICS AND IDEMPOTENCY
+------------------------------------------------------------------------------
+Delivery semantic implemented: AT-LEAST-ONCE
+Offset commit rule: commit/advance offsets only after successful processing of a batch/event range.
+Commit frequency used in failure demo: every 50,000 events
+Crash consequence: events processed after the last committed position are delivered again after restart.
+Idempotency mechanisms:
+  - session-metrics-projector: deterministic state keyed by website_session_id
+  - conversion-audit-writer: event_id PRIMARY KEY / conflict ignored
+  - refund-monitor: event_id-keyed upsert/update
+Without idempotency, redelivery could double-write records or double-apply side effects.
+
+PART 8 — THROUGHPUT AND CONSUMER LAG
+------------------------------------------------------------------------------
+Producer throughput: 4,935 events/sec
+session-metrics-projector: 1,188,124 events, 209.1791041000106 sec, 5,679 events/sec, final lag 0
+conversion-audit-writer: 1,189,855 events, 20.39163590001408 sec, 58,350 events/sec, final lag 0
+refund-monitor: 1,189,855 events, 12.884512099990388 sec, 92,347 events/sec, final lag 0
+Consumer lag definition: the count of retained events after a group's committed log position that the group has not processed yet.
+At the end of the successful full run, all core consumer groups have final lag 0.
+If the producer ran continuously, lag would rise whenever production temporarily exceeds a consumer's processing rate and fall when the consumer catches up.
+
+PART 9 — FAILURE ISOLATION
+------------------------------------------------------------------------------
+Failure injected into: flaky-conversion-audit
+Events handled before crash: 250,000
+Committed event count at crash: 200,000
+Committed log_offset at crash: 12,098,550
+Unconsumed backlog after crash: 989,855
+Events lost: 0
+Producer: UNAFFECTED — 1,189,855 events already retained
+session-metrics-projector: UNAFFECTED — independent consumer group and offsets
+refund-monitor: UNAFFECTED — independent consumer group and offsets
+flaky-conversion-audit: DOWN THEN RECOVERED — resumed from committed log_offset 12,098,550
+Producer blocked? NO — events were already retained and other consumer groups used independent offsets.
+
+PART 10 — RECOVERY AND REDELIVERY
+------------------------------------------------------------------------------
+Consumer resumed from committed log_offset: 12,098,550
+Events processed during catch-up: 989,855
+Catch-up time: 55.93925440000021 seconds
+Remaining lag after recovery: 0
+Unique records after recovery: 1,189,855
+Total events in log: 1,189,855
+Redelivered count: 50,000
+Why redelivery > 0: the crash occurs after processing some events but before their offset is committed, so those events are delivered again on restart.
+Production duplicate handling: an idempotent event_id key/upsert prevents repeated delivery from changing the final state.
+
+PART 11 — REPLAY
+------------------------------------------------------------------------------
+New consumer reads all history: 1,189,855 events
+Rewind and reprocess deterministic: YES
+Offline consumer catch-up: processed=1,189,855, final lag=0
+Partial replay from timestamp: 2014-12-05 06:53:38.800000
+Partial replay events: 237,971 (20.00%)
+Late-joining metric: Revenue by Traffic Source plus reconstructed retail monetization metrics.
+Why producer output alone cannot answer it: the producer emits retained events; the later analytics consumer derives a new projection from history without changing producer code.
+A projection bug can be fixed by correcting the consumer and replaying the retained log; without a log, the source history would need to be reconstructed/reloaded.
+
+PART 12 — RECONCILIATION AGAINST SESSION 1
+------------------------------------------------------------------------------
+Groups produced — Session 1: 472,871
+Groups produced — Session 2: 472,871
+Group sets identical: YES
+Group-count difference: 0
+Maximum difference in pageview count: 0.0
+Maximum difference in converted flag: 0.0
+Maximum difference in session duration: 0.0
+Maximum difference in order revenue: 0.0
+Maximum difference in gross profit: 7.105427357601002e-15
+Tolerance applied: 1e-06
+Result: PASSED
+Total records — Session 1: 1,188,124
+Total records — Session 2: 1,188,124
+Aggregate total (order revenue) — Session 1: $1,938,509.75
+Aggregate total (order revenue) — Session 2: $1,938,509.75
+Aggregate gross profit — Session 1: $1,216,139.50
+Aggregate gross profit — Session 2: $1,216,139.50
+Maximum difference in record counts: 0
+Maximum difference in totals: 0
+Maximum difference in means: 0
+Mean-difference detail: session_duration_seconds=0, order_revenue_usd=0, gross_profit_usd=0
+Explanation of non-zero residual: The remaining difference is floating-point representation noise (7.1054273576e-15), which is below the tolerance 1e-06; there is no structural loss or duplication.
+Suggested CI gate: identical website_session_id sets; exact pageview_count and converted values; all numeric differences <= tolerance; aggregate-total and mean differences <= tolerance; all core consumer lag = 0.
+
+PART 13 — CAPSTONE ARCHITECTURE MAPPING
+------------------------------------------------------------------------------
+Event source: Session 1 Toy Store E-Commerce dataset migrated to PostgreSQL retailmetrics
+Topic: commerce.activity.recorded
+Partition key/count: website_session_id / 4
+Backbone: PostgreSQL-backed durable event log
+Consumers: session-metrics-projector, conversion-audit-writer, refund-monitor
+Session 2 outputs: streamed session projection, lag report, reconciliation report, replay/monetization outputs
+Session 1 artifact consumed: results/session_journey_metrics.parquet
+Session 3 handoff: Session 2 consumer/projection outputs and durable event contract
+Architecture diagram: architecture/architecture-session2.png (if present)
+
+PART 14 — MULTI-SESSION CONTINUITY PLAN
+------------------------------------------------------------------------------
+Session 3: turn suitable consumer responsibilities into distributed services and expose service interfaces.
+Session 4: introduce event-time windowed analytics over created_at and selected business metrics.
+Session 5: containerize producer/consumers/backbone dependencies as appropriate.
+Session 6: automate reconciliation, tests, and pass/fail checks in CI/IaC.
+Manual review still required here because the professor expects your own concrete plan and wording.
+
+PART 15 — REPOSITORY EVIDENCE
+------------------------------------------------------------------------------
+config.py
+stream_core.py
+produce_events.py
+consumers.py
+replay_suite.py
+reconcile.py
+run_pipeline.py
+results/stream_session_metrics.csv
+results/consumer_lag.csv
+results/reconciliation_report.json
+architecture/architecture-session2.png
+README.md
+
+PARTS THAT MUST STILL BE FILLED MANUALLY
+------------------------------------------------------------------------------
+Part 1: repository URL, commit hash, submission date, current Python version, final backbone wording.
+Part 3: copy the exact payload schema fields from produce_events.py into the professor's schema table.
+Part 5: explain any Session 1 vs Session 2 skew difference in your own words.
+Part 8: identify fastest/slowest consumer from the current run and explain the measured cause.
+Part 14: personalize the Session 3-6 continuity plan.
+Part 16: answer all 14 guide questions in your own words.
+Part 18: AI-use disclosure, your own work/verification, references, signature/date.

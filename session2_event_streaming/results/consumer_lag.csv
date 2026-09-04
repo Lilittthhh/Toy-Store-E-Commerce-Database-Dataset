@@ -1,0 +1,13 @@
+group,partition,end_offset,committed,lag
+conversion-audit-writer,0,13088403,13088403,0
+conversion-audit-writer,1,13088404,13088404,0
+conversion-audit-writer,2,13088405,13088405,0
+conversion-audit-writer,3,13088400,13088400,0
+refund-monitor,0,13088403,13088403,0
+refund-monitor,1,13088404,13088404,0
+refund-monitor,2,13088405,13088405,0
+refund-monitor,3,13088400,13088400,0
+session-metrics-projector,0,13088403,13088403,0
+session-metrics-projector,1,13088404,13088404,0
+session-metrics-projector,2,13088405,13088405,0
+session-metrics-projector,3,13088400,13088400,0

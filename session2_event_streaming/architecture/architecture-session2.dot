@@ -1,0 +1,72 @@
+
+digraph Architecture {
+  rankdir=LR;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=17;
+  label=<<b>RetailMetrics — Session 2 Event Streaming &amp; Messaging Backbone</b><br/>
+  <font point-size="11">actual repository components and PostgreSQL durable-log implementation</font><br/>>;
+
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=9];
+  edge [color="#2E74B5" fontname="Helvetica" fontsize=8 penwidth=1.5];
+
+  s1 [label="Session 1 handover
+PostgreSQL source tables +
+session_journey_metrics.parquet" fillcolor="#D9EAF7"];
+  handover [label="handover_verify.py
+source + batch continuity checks" fillcolor="#FFF2CC"];
+  selfpre [label="self_test.py --pre
+backbone/config/routing checks" fillcolor="#FFF2CC"];
+  producer [label="produce_events.py
+enrich • sort • publish --reset" fillcolor="#E2EFDA"];
+  log [label="retailmetrics_event_log
+topic: commerce.activity.recorded
+4 partitions
+key: website_session_id" fillcolor="#D9EAF7" color="#1F3864" penwidth=2];
+  selfpost [label="self_test.py --post
+ordering • replay • retained-log checks" fillcolor="#FFF2CC"];
+
+  projector [label="session-metrics-projector
+consumers.py
+idempotent session projection" fillcolor="#E2EFDA"];
+  audit [label="conversion-audit-writer
+consumers.py
+event_id dedup" fillcolor="#E2EFDA"];
+  refunds [label="refund-monitor
+consumers.py
+idempotent refund projection" fillcolor="#E2EFDA"];
+  offsets [label="consumer offsets
+independent group progress + lag" fillcolor="#F2F2F2"];
+
+  reconcile [label="reconcile.py
+Session 2 stream vs Session 1 batch" fillcolor="#FCE4D6"];
+  failure [label="failure_recovery.py
+at-least-once crash + redelivery" fillcolor="#FCE4D6"];
+  replay [label="replay_suite.py
+late join • rewind • catch-up • partial replay" fillcolor="#FCE4D6"];
+  monet [label="monetization_snapshot.json
+revenue • profit • refunds • traffic source" fillcolor="#D9EAF7"];
+  s3 [label="Session 3 handoff
+durable history + projections + reports" fillcolor="#D9EAF7" color="#1F3864"];
+
+  s1 -> handover;
+  handover -> selfpre;
+  selfpre -> producer [label="ready"];
+  producer -> log [label="publish once"];
+  log -> selfpost [label="verify stored events"];
+  log -> projector [label="group 1"];
+  log -> audit [label="group 2"];
+  log -> refunds [label="group 3"];
+  projector -> offsets;
+  audit -> offsets;
+  refunds -> offsets;
+  projector -> reconcile [label="stream projection"];
+  s1 -> reconcile [label="batch reference"];
+  log -> failure [label="retained backlog"];
+  log -> replay [label="retained history"];
+  replay -> monet;
+  reconcile -> s3;
+  failure -> s3;
+  monet -> s3;
+}

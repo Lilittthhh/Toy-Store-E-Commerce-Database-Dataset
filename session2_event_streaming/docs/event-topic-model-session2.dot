@@ -1,0 +1,58 @@
+
+digraph EventModel {
+  rankdir=LR;
+  bgcolor="white";
+  fontname="Helvetica";
+  labelloc="t";
+  fontsize=17;
+  label=<<b>RetailMetrics — Session 2 Event / Topic Model</b><br/>
+  <font point-size="11">durable event history, partition affinity, conversion and refund events</font><br/>>;
+
+  node [shape=plaintext fontname="Helvetica"];
+  edge [color="#2E74B5" fontname="Helvetica" fontsize=9 penwidth=1.5];
+
+  Source [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#D9EAF7"><b>Session 1 PostgreSQL Source</b></td></tr>
+      <tr><td align="left">website_pageviews</td></tr>
+      <tr><td align="left">website_sessions</td></tr>
+      <tr><td align="left">orders</td></tr>
+      <tr><td align="left">order_item_refunds</td></tr>
+    </table>>];
+
+  Pageview [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#E2EFDA"><b>pageview.recorded</b><br/><font point-size="9">event_version = 1</font></td></tr>
+      <tr><td align="left">event_id : String «unique»</td></tr>
+      <tr><td align="left"><b>website_session_id : Integer «partitionKey»</b></td></tr>
+      <tr><td align="left"><b>created_at : Timestamp «eventTime»</b></td></tr>
+      <tr><td align="left">website_pageview_id / pageview_url</td></tr>
+      <tr><td align="left">utm_source / campaign / content</td></tr>
+      <tr><td align="left">is_last_pageview / converted</td></tr>
+      <tr><td align="left">order revenue / COGS / gross profit</td></tr>
+    </table>>];
+
+  Refund [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FCE4D6"><b>refund.recorded</b><br/><font point-size="9">event_version = 1</font></td></tr>
+      <tr><td align="left">event_id : String «unique»</td></tr>
+      <tr><td align="left"><b>website_session_id : Integer «partitionKey»</b></td></tr>
+      <tr><td align="left"><b>created_at : Timestamp «eventTime»</b></td></tr>
+      <tr><td align="left">order_item_refund_id / order_id</td></tr>
+      <tr><td align="left">refund_amount_usd : Double</td></tr>
+    </table>>];
+
+  Topic [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FFF2CC"><b>commerce.activity.recorded</b><br/><font point-size="9">durable logical topic</font></td></tr>
+      <tr><td align="left"><b>4 logical partitions</b></td></tr>
+      <tr><td align="left">routing = website_session_id % 4</td></tr>
+      <tr><td align="left">stored in retailmetrics_event_log</td></tr>
+      <tr><td align="left">non-destructive retained history</td></tr>
+    </table>>];
+
+  Source -> Pageview [label="enrich + event-time sort"];
+  Source -> Refund [label="join refund to session"];
+  Pageview -> Topic [label="publish"];
+  Refund -> Topic [label="publish"];
+}

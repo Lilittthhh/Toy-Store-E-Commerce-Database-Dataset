@@ -1,0 +1,44 @@
+{
+  "topic": "commerce.activity.recorded",
+  "log_end": 13088405,
+  "groups": [
+    {
+      "group": "session-metrics-projector",
+      "description": "Rebuilds Session 1 session metrics one event at a time",
+      "processed": 1188124,
+      "seconds": 209.1791041000106,
+      "events_per_sec": 5679.936364159712,
+      "duplicates_skipped": 0,
+      "final_lag": 0,
+      "session_groups": 472871,
+      "idempotency": "deterministic snapshot keyed by website_session_id; replay upserts the same final state"
+    },
+    {
+      "group": "conversion-audit-writer",
+      "description": "Independent idempotent audit view of purchase conversions",
+      "processed": 1189855,
+      "seconds": 20.39163590001408,
+      "events_per_sec": 58350.14933741429,
+      "duplicates_skipped": 0,
+      "final_lag": 0,
+      "conversions": 32313,
+      "idempotency": "conversion audit sink has event_id PRIMARY KEY; ON CONFLICT DO NOTHING rejects redelivery"
+    },
+    {
+      "group": "refund-monitor",
+      "description": "Idempotent refund projection and refunded value",
+      "processed": 1189855,
+      "seconds": 12.884512099990388,
+      "events_per_sec": 92347.69549410316,
+      "duplicates_skipped": 0,
+      "final_lag": 0,
+      "refund_events": 1731,
+      "refund_total_usd": 85338.69,
+      "idempotency": "refund sink keyed by event_id; replay updates the same event row"
+    }
+  ],
+  "producer_changes_required_for_third_consumer": 0,
+  "second_run_behavior": "Consumers can replay the retained history; idempotent sinks preserve the same logical final state.",
+  "brand_new_group_behavior": "Starts at offset 0 and can read all retained history.",
+  "total_lag": 0
+}

@@ -1,0 +1,52 @@
+{
+  "topic": "commerce.activity.recorded",
+  "routing_rule": "website_session_id % 4",
+  "phase": "post-produce",
+  "tests": [
+    {
+      "guarantee": "Stable key routing",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "stored routing mismatches=0"
+    },
+    {
+      "guarantee": "Ordering within a partition",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "out-of-order pairs=0"
+    },
+    {
+      "guarantee": "Non-destructive read",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "first read=296,607; second read=296,607"
+    },
+    {
+      "guarantee": "Consumer group isolation",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "group A lag=0; group B lag=1,189,855 retained events"
+    },
+    {
+      "guarantee": "Replay",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "reset exposes retained history; replayable events=1,189,855"
+    },
+    {
+      "guarantee": "Durability",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "retained across new connection=1,189,855 events"
+    },
+    {
+      "guarantee": "Backbone configuration",
+      "status": "PASS",
+      "pass": true,
+      "evidence": "streaming tables remained available after Produce"
+    }
+  ],
+  "overall_pass": true,
+  "note": "All event-dependent guarantees were validated against the actual retained Toy Store event history.",
+  "approximated_vs_real_broker": "The project uses one PostgreSQL instance as the durable log. It persists events across application restarts but does not provide broker replication, leader election, or multi-node fault tolerance like Kafka/Redpanda."
+}

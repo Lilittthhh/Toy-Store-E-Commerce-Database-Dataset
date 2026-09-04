@@ -1,0 +1,80 @@
+{
+  "event_time_min": "2012-03-19 08:04:16",
+  "event_time_max": "2015-04-01 18:11:08",
+  "new_consumer_history": {
+    "events_consumed": 1189855,
+    "seconds": 20.953124799998477
+  },
+  "deterministic_replay": true,
+  "offline_catch_up": {
+    "events_processed": 1189855,
+    "final_lag": 0
+  },
+  "partial_replay": {
+    "from_time": "2014-12-05 06:53:38.800000",
+    "events": 237971,
+    "share_pct": 20.0
+  },
+  "monetization": {
+    "sessions": 472871,
+    "converted_sessions": 32313,
+    "conversion_rate_pct": 6.833364702001179,
+    "gross_revenue_usd": 1938509.75,
+    "cogs_usd": 722370.25,
+    "gross_profit_usd": 1216139.5,
+    "refunds_usd": 85338.69,
+    "net_revenue_usd": 1853171.06,
+    "traffic_sources": [
+      {
+        "source": "gsearch",
+        "sessions": 316035,
+        "conversions": 21333,
+        "revenue_usd": 1276144.89
+      },
+      {
+        "source": "NULL",
+        "sessions": 83328,
+        "conversions": 6118,
+        "revenue_usd": 371433.03
+      },
+      {
+        "source": "bsearch",
+        "sessions": 62823,
+        "conversions": 4519,
+        "revenue_usd": 268672.5
+      },
+      {
+        "source": "socialbook",
+        "sessions": 10685,
+        "conversions": 343,
+        "revenue_usd": 22259.33
+      }
+    ],
+    "products": [
+      {
+        "product_id": 1,
+        "orders": 23861,
+        "revenue_usd": 1419767.82,
+        "gross_profit_usd": 879952.0
+      },
+      {
+        "product_id": 2,
+        "orders": 4803,
+        "revenue_usd": 318109.18,
+        "gross_profit_usd": 200348.0
+      },
+      {
+        "product_id": 3,
+        "orders": 3068,
+        "revenue_usd": 180857.03,
+        "gross_profit_usd": 122410.5
+      },
+      {
+        "product_id": 4,
+        "orders": 581,
+        "revenue_usd": 19775.72,
+        "gross_profit_usd": 13429.0
+      }
+    ]
+  }
+}

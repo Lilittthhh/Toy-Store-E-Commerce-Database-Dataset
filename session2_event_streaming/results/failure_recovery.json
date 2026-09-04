@@ -1,0 +1,44 @@
+{
+  "consumer": "flaky-conversion-audit",
+  "delivery_semantic": "at-least-once",
+  "commit_location": "offset is advanced only after a committed processing batch",
+  "commit_frequency_events": 50000,
+  "events_in_log": 1189855,
+  "failure_after_handled": 250000,
+  "handled_log_offset": 12148550,
+  "committed_event_count": 200000,
+  "committed_before_crash": 12098550,
+  "precrash_records_written": 250000,
+  "backlog_left_in_log": 989855,
+  "events_processed_during_recovery": 989855,
+  "new_records_during_recovery": 939855,
+  "events_redelivered": 50000,
+  "duplicates_skipped_by_event_id": 50000,
+  "total_records_written_unique": 1189855,
+  "final_lag": 0,
+  "recovery_seconds": 55.93925440000021,
+  "events_lost": 0,
+  "idempotency_mechanism": "retailmetrics_failure_audit.event_id PRIMARY KEY + ON CONFLICT DO NOTHING",
+  "blast_radius": [
+    {
+      "component": "Producer",
+      "status": "UNAFFECTED",
+      "evidence": "1,189,855 events already retained"
+    },
+    {
+      "component": "session-metrics-projector",
+      "status": "UNAFFECTED",
+      "evidence": "independent consumer group and offsets"
+    },
+    {
+      "component": "refund-monitor",
+      "status": "UNAFFECTED",
+      "evidence": "independent consumer group and offsets"
+    },
+    {
+      "component": "flaky-conversion-audit",
+      "status": "DOWN THEN RECOVERED",
+      "evidence": "resumed from committed log_offset 12,098,550"
+    }
+  ]
+}

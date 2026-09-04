@@ -1,0 +1,12 @@
+{
+  "pageviews_before": 1188124,
+  "pageviews_after": 1188124,
+  "refunds_before": 1731,
+  "refunds_after": 1731,
+  "assertions": [
+    "pageviews_after == pageviews_before",
+    "refunds_after == refunds_before"
+  ],
+  "passed": true,
+  "expected_events": 1189855
+}

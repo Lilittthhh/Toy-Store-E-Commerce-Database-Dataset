@@ -1,0 +1,21 @@
+{
+  "reference": "Session 1 parquet",
+  "batch_groups": 472871,
+  "stream_groups": 472871,
+  "group_sets_identical": true,
+  "count_difference": 0,
+  "max_differences": {
+    "pageview_count": 0.0,
+    "converted": 0.0,
+    "session_duration_seconds": 0.0,
+    "order_revenue_usd": 0.0,
+    "gross_profit_usd": 7.105427357601002e-15
+  },
+  "tolerance": 1e-06,
+  "consumer_lag": {
+    "session-metrics-projector": 0,
+    "conversion-audit-writer": 0,
+    "refund-monitor": 0
+  },
+  "passed": true
+}

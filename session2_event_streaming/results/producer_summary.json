@@ -1,0 +1,49 @@
+{
+  "topic": "commerce.activity.recorded",
+  "event_types": [
+    "pageview.recorded",
+    "refund.recorded"
+  ],
+  "schema_version": 1,
+  "partition_key": "website_session_id",
+  "routing_rule": "website_session_id % 4",
+  "event_time": "created_at",
+  "pageview_events_expected": 1188124,
+  "refund_events_expected": 1731,
+  "total_events_expected": 1189855,
+  "events_before": 0,
+  "events_inserted": 1189855,
+  "events_after": 1189855,
+  "distinct_partition_keys": 472871,
+  "offset_min": 11898551,
+  "offset_max": 13088405,
+  "event_time_min": "2012-03-19 08:04:16",
+  "event_time_max": "2015-04-01 18:11:08",
+  "sort_applied": "ORDER BY event_time, event_id before insertion",
+  "partitions": [
+    [
+      0,
+      296607
+    ],
+    [
+      1,
+      297760
+    ],
+    [
+      2,
+      297357
+    ],
+    [
+      3,
+      298131
+    ]
+  ],
+  "even_share": 297463.75,
+  "skew_ratio": 1.0051381120472545,
+  "log_size_bytes": 2478342144,
+  "log_size_mb": 2363.53125,
+  "elapsed_s": 241.06835200000205,
+  "events_per_sec": 4935.757805321496,
+  "reset": true,
+  "enrichment_assertions_passed": true
+}

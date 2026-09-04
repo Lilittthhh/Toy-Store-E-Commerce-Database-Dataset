@@ -1,0 +1,20 @@
+{
+  "session1_dataset_path": "C:\\Users\\ureha\\OneDrive\\Desktop\\MIT\\MIT261-UTTO\\session1_parallel_compute\\datasets",
+  "dataset_path_resolved": true,
+  "required_csv_files": [
+    "website_sessions.csv",
+    "website_pageviews.csv",
+    "orders.csv",
+    "order_items.csv",
+    "order_item_refunds.csv",
+    "products.csv"
+  ],
+  "session1_batch_output": "C:\\Users\\ureha\\OneDrive\\Desktop\\MIT\\MIT261-UTTO\\session1_parallel_compute\\results\\session_journey_metrics.parquet",
+  "batch_output_exists_and_loads": true,
+  "group_count": 472871,
+  "aggregate_order_revenue_usd": 1938509.7499999995,
+  "aggregate_gross_profit_usd": 1216139.5,
+  "partition_key_inherited": "website_session_id",
+  "event_time_field": "created_at",
+  "passed": true
+}
