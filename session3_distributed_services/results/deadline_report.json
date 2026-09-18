@@ -1,0 +1,10 @@
+{
+  "delay_ms": 250,
+  "short_timeout_ms": 50.0,
+  "short_status": "DEADLINE_EXCEEDED",
+  "short_elapsed_ms": 60.2433,
+  "generous_timeout_ms": 2000.0,
+  "generous_status": "SUCCESS",
+  "generous_elapsed_ms": 259.3723,
+  "passed": true
+}

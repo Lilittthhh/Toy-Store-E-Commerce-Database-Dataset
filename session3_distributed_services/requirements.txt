@@ -1,0 +1,12 @@
+fastapi==0.141.1
+grpcio==1.83.1
+grpcio-tools==1.83.1
+httpx==0.28.1
+pandas==3.0.5
+protobuf>=6.31.1,<8
+psycopg2-binary==2.9.12
+pyarrow==25.0.1
+python-dotenv==1.2.3
+pytest==9.1.1
+uvicorn==0.52.4
+

@@ -1,0 +1,9 @@
+message,fields,json_bytes,protobuf_bytes,bytes_saved,reduction_pct
+Product,3,92,34,58,63.0435
+Order,8,167,24,143,85.6287
+OrderItem,7,140,22,118,84.2857
+Refund,5,111,17,94,84.6847
+WebsiteSession,9,230,74,156,67.8261
+SessionMetric,6,139,4,135,97.1223
+SalesSummary,7,186,36,150,80.6452
+ProductPerformance,8,191,54,137,71.7277

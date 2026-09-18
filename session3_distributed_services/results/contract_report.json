@@ -1,0 +1,895 @@
+{
+  "package": "retailmetrics.session3.v1",
+  "messages": [
+    {
+      "name": "PageRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "limit",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "offset",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "ProductIdRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "product_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "Product",
+      "fields": [
+        {
+          "number": 1,
+          "name": "product_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "created_at",
+          "type": "google.protobuf.Timestamp",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "product_name",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "ProductList",
+      "fields": [
+        {
+          "number": 1,
+          "name": "products",
+          "type": "retailmetrics.session3.v1.Product",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderIdRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderBatchRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_ids",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": true
+        }
+      ]
+    },
+    {
+      "name": "Order",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "created_at",
+          "type": "google.protobuf.Timestamp",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "website_session_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "user_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "primary_product_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "items_purchased",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 7,
+          "name": "price_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 8,
+          "name": "cogs_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderBatch",
+      "fields": [
+        {
+          "number": 1,
+          "name": "orders",
+          "type": "retailmetrics.session3.v1.Order",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderItemIdRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_item_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderItemsRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "limit",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "offset",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderItem",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_item_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "created_at",
+          "type": "google.protobuf.Timestamp",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "product_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "is_primary_item",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "price_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 7,
+          "name": "cogs_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "OrderItemList",
+      "fields": [
+        {
+          "number": 1,
+          "name": "items",
+          "type": "retailmetrics.session3.v1.OrderItem",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "RefundIdRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "refund_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "RefundsRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "limit",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "offset",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "Refund",
+      "fields": [
+        {
+          "number": 1,
+          "name": "refund_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "created_at",
+          "type": "google.protobuf.Timestamp",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "order_item_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "order_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "refund_amount_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "RefundList",
+      "fields": [
+        {
+          "number": 1,
+          "name": "refunds",
+          "type": "retailmetrics.session3.v1.Refund",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionIdRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "website_session_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionBatchRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "website_session_ids",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": true
+        }
+      ]
+    },
+    {
+      "name": "WebsiteSession",
+      "fields": [
+        {
+          "number": 1,
+          "name": "website_session_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "created_at",
+          "type": "google.protobuf.Timestamp",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "user_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "is_repeat_session",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "utm_source",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "utm_campaign",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 7,
+          "name": "utm_content",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 8,
+          "name": "device_type",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 9,
+          "name": "http_referer",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionBatch",
+      "fields": [
+        {
+          "number": 1,
+          "name": "sessions",
+          "type": "retailmetrics.session3.v1.WebsiteSession",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionMetricsRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "limit",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "after_session_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionMetric",
+      "fields": [
+        {
+          "number": 1,
+          "name": "website_session_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "pageview_count",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "session_duration_seconds",
+          "type": "1",
+          "wire_type": "fixed64",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "converted",
+          "type": "8",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "order_revenue_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "gross_profit_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SessionMetricList",
+      "fields": [
+        {
+          "number": 1,
+          "name": "metrics",
+          "type": "retailmetrics.session3.v1.SessionMetric",
+          "wire_type": "length-delimited",
+          "repeated": true
+        },
+        {
+          "number": 2,
+          "name": "total",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "SalesSummary",
+      "fields": [
+        {
+          "number": 1,
+          "name": "session_count",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "order_count",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "conversion_count",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "revenue_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "gross_profit_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "refund_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 7,
+          "name": "conversion_rate",
+          "type": "1",
+          "wire_type": "fixed64",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "ProductPerformanceRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "limit",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "ProductPerformance",
+      "fields": [
+        {
+          "number": 1,
+          "name": "product_id",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "product_name",
+          "type": "9",
+          "wire_type": "length-delimited",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "order_count",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 4,
+          "name": "units",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 5,
+          "name": "revenue_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 6,
+          "name": "cogs_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 7,
+          "name": "refund_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 8,
+          "name": "net_revenue_cents",
+          "type": "3",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "ProductPerformanceList",
+      "fields": [
+        {
+          "number": 1,
+          "name": "products",
+          "type": "retailmetrics.session3.v1.ProductPerformance",
+          "wire_type": "length-delimited",
+          "repeated": true
+        }
+      ]
+    },
+    {
+      "name": "DelayRequest",
+      "fields": [
+        {
+          "number": 1,
+          "name": "delay_ms",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        }
+      ]
+    },
+    {
+      "name": "DelayResult",
+      "fields": [
+        {
+          "number": 1,
+          "name": "requested_delay_ms",
+          "type": "5",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 2,
+          "name": "completed",
+          "type": "8",
+          "wire_type": "varint",
+          "repeated": false
+        },
+        {
+          "number": 3,
+          "name": "summary",
+          "type": "retailmetrics.session3.v1.SalesSummary",
+          "wire_type": "length-delimited",
+          "repeated": false
+        }
+      ]
+    }
+  ],
+  "services": [
+    {
+      "name": "CatalogService",
+      "methods": [
+        {
+          "name": "GetProduct",
+          "request": "ProductIdRequest",
+          "response": "Product",
+          "kind": "unary"
+        },
+        {
+          "name": "ListProducts",
+          "request": "PageRequest",
+          "response": "ProductList",
+          "kind": "unary"
+        }
+      ]
+    },
+    {
+      "name": "OrderDataService",
+      "methods": [
+        {
+          "name": "GetOrder",
+          "request": "OrderIdRequest",
+          "response": "Order",
+          "kind": "unary"
+        },
+        {
+          "name": "ListOrders",
+          "request": "PageRequest",
+          "response": "OrderBatch",
+          "kind": "unary"
+        },
+        {
+          "name": "BatchGetOrders",
+          "request": "OrderBatchRequest",
+          "response": "OrderBatch",
+          "kind": "unary"
+        },
+        {
+          "name": "GetOrderItem",
+          "request": "OrderItemIdRequest",
+          "response": "OrderItem",
+          "kind": "unary"
+        },
+        {
+          "name": "ListOrderItems",
+          "request": "OrderItemsRequest",
+          "response": "OrderItemList",
+          "kind": "unary"
+        },
+        {
+          "name": "GetRefund",
+          "request": "RefundIdRequest",
+          "response": "Refund",
+          "kind": "unary"
+        },
+        {
+          "name": "ListRefunds",
+          "request": "RefundsRequest",
+          "response": "RefundList",
+          "kind": "unary"
+        }
+      ]
+    },
+    {
+      "name": "JourneyService",
+      "methods": [
+        {
+          "name": "GetSession",
+          "request": "SessionIdRequest",
+          "response": "WebsiteSession",
+          "kind": "unary"
+        },
+        {
+          "name": "BatchGetSessions",
+          "request": "SessionBatchRequest",
+          "response": "SessionBatch",
+          "kind": "unary"
+        }
+      ]
+    },
+    {
+      "name": "AnalyticsService",
+      "methods": [
+        {
+          "name": "GetSalesSummary",
+          "request": "Empty",
+          "response": "SalesSummary",
+          "kind": "unary"
+        },
+        {
+          "name": "GetSessionMetrics",
+          "request": "SessionMetricsRequest",
+          "response": "SessionMetricList",
+          "kind": "unary"
+        },
+        {
+          "name": "StreamSessionMetrics",
+          "request": "SessionMetricsRequest",
+          "response": "SessionMetric",
+          "kind": "server-streaming"
+        },
+        {
+          "name": "GetProductPerformance",
+          "request": "ProductPerformanceRequest",
+          "response": "ProductPerformanceList",
+          "kind": "unary"
+        }
+      ]
+    },
+    {
+      "name": "DiagnosticsService",
+      "methods": [
+        {
+          "name": "DelaySummary",
+          "request": "DelayRequest",
+          "response": "DelayResult",
+          "kind": "unary"
+        }
+      ]
+    }
+  ],
+  "message_count": 29,
+  "field_count": 88,
+  "service_count": 5,
+  "method_count": 16,
+  "generated_modules_importable": true,
+  "passed": true
+}

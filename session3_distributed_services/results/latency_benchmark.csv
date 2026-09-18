@@ -1,0 +1,4 @@
+transport,codec,calls,median_ms,p95_ms,calls_per_sec,request_bytes,response_bytes
+in-process,none,100,0.0012,0.0026,523834.468,0,0
+rest-json,JSON,100,2.3083,2.9036,451.225,0,186
+grpc-protobuf,protobuf,100,0.5981,0.7064,1677.183,0,36

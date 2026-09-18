@@ -1,0 +1,44 @@
+{
+  "comparisons": [
+    {
+      "compared_against": "Session 1: session_journey_metrics.parquet",
+      "session3_records": 472871,
+      "reference_records": 472871,
+      "ids_equal": true,
+      "max_exact_differences": {
+        "pageview_count": 0,
+        "converted": 0
+      },
+      "max_duration_difference": 0.0,
+      "max_revenue_difference_cents": 0,
+      "max_gross_profit_difference_cents": 0,
+      "tolerance": 1e-06,
+      "passed": true
+    },
+    {
+      "compared_against": "Session 2: stream_session_metrics.csv",
+      "session3_records": 472871,
+      "reference_records": 472871,
+      "ids_equal": true,
+      "max_exact_differences": {
+        "pageview_count": 0,
+        "converted": 0
+      },
+      "max_duration_difference": 0.0,
+      "max_revenue_difference_cents": 0,
+      "max_gross_profit_difference_cents": 0,
+      "tolerance": 1e-06,
+      "passed": true
+    }
+  ],
+  "refund_comparison": {
+    "compared_against": "Session 2: consumer_summary.json/refund-monitor",
+    "session3_refund_count": 1731,
+    "reference_refund_count": 1731,
+    "refund_difference_cents": 0,
+    "passed": true
+  },
+  "json_protobuf_equivalence_required_separately": true,
+  "product_performance_cross_session_comparison": "not applicable; Sessions 1 and 2 do not publish the same metric",
+  "passed": true
+}

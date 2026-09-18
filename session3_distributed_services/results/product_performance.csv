@@ -1,0 +1,5 @@
+product_id,product_name,order_count,units,revenue_cents,cogs_cents,refund_cents,net_revenue_cents
+1,The Original Mr. Fuzzy,24226,24226,121105774,47216474,6183763,114922011
+2,The Forever Love Bear,5796,5796,34770204,13035204,773871,33996333
+3,The Birthday Sugar Panda,4985,4985,22926015,7223265,1384299,21541716
+4,The Hudson River Mini bear,5018,5018,15048982,4762082,191936,14857046

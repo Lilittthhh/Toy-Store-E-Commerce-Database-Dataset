@@ -1,0 +1,3 @@
+transport,rows,batch_ms,individual_ms,speedup,round_trips_saved,equivalent
+rest-json,50,5.5666,125.549,22.554,49,True
+grpc-protobuf,50,1.2003,30.4196,25.3433,49,True

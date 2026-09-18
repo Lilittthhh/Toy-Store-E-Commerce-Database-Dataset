@@ -1,0 +1,8 @@
+service_method,calls,errors
+AnalyticsService.GetProductPerformance,41,0
+AnalyticsService.GetSalesSummary,387,0
+AnalyticsService.GetSessionMetrics,1,0
+AnalyticsService.StreamSessionMetrics,1,0
+DiagnosticsService.DelaySummary,2,0
+OrderDataService.BatchGetOrders,2,0
+OrderDataService.GetOrder,100,0

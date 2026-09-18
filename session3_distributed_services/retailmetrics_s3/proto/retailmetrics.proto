@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package retailmetrics.session3.v1;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message PageRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message ProductIdRequest { int64 product_id = 1; }
+
+message Product {
+  int64 product_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  string product_name = 3;
+}
+
+message ProductList {
+  repeated Product products = 1;
+  int64 total = 2;
+}
+
+message OrderIdRequest { int64 order_id = 1; }
+
+message OrderBatchRequest { repeated int64 order_ids = 1; }
+
+message Order {
+  int64 order_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 website_session_id = 3;
+  int64 user_id = 4;
+  optional int64 primary_product_id = 5;
+  int32 items_purchased = 6;
+  int64 price_cents = 7;
+  int64 cogs_cents = 8;
+}
+
+message OrderBatch {
+  repeated Order orders = 1;
+  int64 total = 2;
+}
+
+message OrderItemIdRequest { int64 order_item_id = 1; }
+
+message OrderItemsRequest {
+  int64 order_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message OrderItem {
+  int64 order_item_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 order_id = 3;
+  int64 product_id = 4;
+  optional int32 is_primary_item = 5;
+  int64 price_cents = 6;
+  int64 cogs_cents = 7;
+}
+
+message OrderItemList {
+  repeated OrderItem items = 1;
+  int64 total = 2;
+}
+
+message RefundIdRequest { int64 refund_id = 1; }
+
+message RefundsRequest {
+  int64 order_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+}
+
+message Refund {
+  int64 refund_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 order_item_id = 3;
+  int64 order_id = 4;
+  int64 refund_amount_cents = 5;
+}
+
+message RefundList {
+  repeated Refund refunds = 1;
+  int64 total = 2;
+}
+
+message SessionIdRequest { int64 website_session_id = 1; }
+
+message SessionBatchRequest { repeated int64 website_session_ids = 1; }
+
+message WebsiteSession {
+  int64 website_session_id = 1;
+  google.protobuf.Timestamp created_at = 2;
+  int64 user_id = 3;
+  optional int32 is_repeat_session = 4;
+  optional string utm_source = 5;
+  optional string utm_campaign = 6;
+  optional string utm_content = 7;
+  optional string device_type = 8;
+  optional string http_referer = 9;
+}
+
+message SessionBatch {
+  repeated WebsiteSession sessions = 1;
+  int64 total = 2;
+}
+
+message SessionMetricsRequest {
+  int32 limit = 1;
+  int64 after_session_id = 2;
+}
+
+message SessionMetric {
+  int64 website_session_id = 1;
+  int64 pageview_count = 2;
+  double session_duration_seconds = 3;
+  bool converted = 4;
+  int64 order_revenue_cents = 5;
+  int64 gross_profit_cents = 6;
+}
+
+message SessionMetricList {
+  repeated SessionMetric metrics = 1;
+  int64 total = 2;
+}
+
+message SalesSummary {
+  int64 session_count = 1;
+  int64 order_count = 2;
+  int64 conversion_count = 3;
+  int64 revenue_cents = 4;
+  int64 gross_profit_cents = 5;
+  int64 refund_cents = 6;
+  double conversion_rate = 7;
+}
+
+message ProductPerformanceRequest { int32 limit = 1; }
+
+message ProductPerformance {
+  int64 product_id = 1;
+  string product_name = 2;
+  int64 order_count = 3;
+  int64 units = 4;
+  int64 revenue_cents = 5;
+  int64 cogs_cents = 6;
+  int64 refund_cents = 7;
+  int64 net_revenue_cents = 8;
+}
+
+message ProductPerformanceList {
+  repeated ProductPerformance products = 1;
+}
+
+message DelayRequest { int32 delay_ms = 1; }
+
+message DelayResult {
+  int32 requested_delay_ms = 1;
+  bool completed = 2;
+  SalesSummary summary = 3;
+}
+
+service CatalogService {
+  rpc GetProduct(ProductIdRequest) returns (Product);
+  rpc ListProducts(PageRequest) returns (ProductList);
+}
+
+service OrderDataService {
+  rpc GetOrder(OrderIdRequest) returns (Order);
+  rpc ListOrders(PageRequest) returns (OrderBatch);
+  rpc BatchGetOrders(OrderBatchRequest) returns (OrderBatch);
+  rpc GetOrderItem(OrderItemIdRequest) returns (OrderItem);
+  rpc ListOrderItems(OrderItemsRequest) returns (OrderItemList);
+  rpc GetRefund(RefundIdRequest) returns (Refund);
+  rpc ListRefunds(RefundsRequest) returns (RefundList);
+}
+
+service JourneyService {
+  rpc GetSession(SessionIdRequest) returns (WebsiteSession);
+  rpc BatchGetSessions(SessionBatchRequest) returns (SessionBatch);
+}
+
+service AnalyticsService {
+  rpc GetSalesSummary(google.protobuf.Empty) returns (SalesSummary);
+  rpc GetSessionMetrics(SessionMetricsRequest) returns (SessionMetricList);
+  rpc StreamSessionMetrics(SessionMetricsRequest) returns (stream SessionMetric);
+  rpc GetProductPerformance(ProductPerformanceRequest) returns (ProductPerformanceList);
+}
+
+service DiagnosticsService {
+  rpc DelaySummary(DelayRequest) returns (DelayResult);
+}
+

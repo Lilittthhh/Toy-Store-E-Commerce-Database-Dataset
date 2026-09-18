@@ -1,0 +1,38 @@
+[02:19:01] CONTRACT: validating protobuf descriptors and generated modules
+[02:19:01] Contract PASS: 29 messages, 16 RPC methods
+[02:19:01] PAYLOAD: measuring compact UTF-8 JSON and deterministic protobuf
+[02:19:01] Opening read-only PostgreSQL snapshot from canonical RetailMetrics data
+[02:19:09] Loaded 472,871 canonical session metrics
+[02:19:09] Payload measurements written; values are serialized application payloads
+[02:19:09] REST ready at http://127.0.0.1:8100
+[02:19:09] gRPC ready at 127.0.0.1:50051
+[02:19:09] LATENCY: measuring local in-process, REST/JSON, and gRPC/protobuf calls
+[02:19:10] Latency benchmark complete; no protocol winner is assumed
+[02:19:10] ROUND TRIPS: comparing individual order calls with one batch
+[02:19:10] Round-trip equivalence verified
+[02:19:10] STREAMING: measuring unary completion and first streamed result
+[02:19:11] Streaming sequence equivalence verified; total times are reported independently
+[02:19:11] ADAPTER SWAP: same caller through REST and gRPC adapters
+[02:19:12] Adapter results compared with zero caller-site changes
+[02:19:12] DEADLINE: controlled read-only delayed summary
+[02:19:12] Short call: DEADLINE_EXCEEDED; generous call: SUCCESS
+[02:19:12] COMPOSE: writing canonical sales and product summaries
+[02:19:12] RECONCILIATION: comparing Session 3 with read-only Session 1 and Session 2 artifacts
+[02:19:20] Reconciliation PASS
+[02:19:21] Database safety PASS: protected and Session 2 row counts unchanged
+[02:19:22] Service host stopped
+{
+  "stages": [
+    "contract",
+    "payload",
+    "latency",
+    "roundtrips",
+    "streaming",
+    "adapter",
+    "deadline",
+    "compose",
+    "reconciliation",
+    "safety"
+  ],
+  "passed": true
+}

@@ -1,0 +1,2 @@
+transport,rows,unary_total_ms,stream_total_ms,first_message_ms,first_result_earlier_x,equivalent
+grpc-protobuf,5000,158.2758,693.3917,1.4045,112.6919,True

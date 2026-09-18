@@ -1,0 +1,53 @@
+{
+  "sales_summary": {
+    "session_count": 472871,
+    "order_count": 32313,
+    "conversion_count": 32313,
+    "revenue_cents": 193850975,
+    "gross_profit_cents": 121613950,
+    "refund_cents": 8533869,
+    "conversion_rate": 0.0683336470200118
+  },
+  "product_performance": [
+    {
+      "product_id": 1,
+      "product_name": "The Original Mr. Fuzzy",
+      "order_count": 24226,
+      "units": 24226,
+      "revenue_cents": 121105774,
+      "cogs_cents": 47216474,
+      "refund_cents": 6183763,
+      "net_revenue_cents": 114922011
+    },
+    {
+      "product_id": 2,
+      "product_name": "The Forever Love Bear",
+      "order_count": 5796,
+      "units": 5796,
+      "revenue_cents": 34770204,
+      "cogs_cents": 13035204,
+      "refund_cents": 773871,
+      "net_revenue_cents": 33996333
+    },
+    {
+      "product_id": 3,
+      "product_name": "The Birthday Sugar Panda",
+      "order_count": 4985,
+      "units": 4985,
+      "revenue_cents": 22926015,
+      "cogs_cents": 7223265,
+      "refund_cents": 1384299,
+      "net_revenue_cents": 21541716
+    },
+    {
+      "product_id": 4,
+      "product_name": "The Hudson River Mini bear",
+      "order_count": 5018,
+      "units": 5018,
+      "revenue_cents": 15048982,
+      "cogs_cents": 4762082,
+      "refund_cents": 191936,
+      "net_revenue_cents": 14857046
+    }
+  ]
+}
