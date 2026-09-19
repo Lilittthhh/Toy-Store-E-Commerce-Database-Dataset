@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>RetailMetrics session synchronization</title>
+  </head>
+  <body style="margin:0;height:0;overflow:hidden">
+    <script>
+      function send(type, payload = {}) {
+        window.parent.postMessage(
+          Object.assign({ isStreamlitMessage: true, type: type }, payload),
+          "*"
+        );
+      }
+
+      function encode(value) {
+        return encodeURIComponent(String(value));
+      }
+
+      window.addEventListener("message", (event) => {
+        if (!event.data || event.data.type !== "streamlit:render") return;
+        const args = event.data.args || {};
+        const name = encode(args.cookie_name);
+        if (args.action === "set") {
+          const secure = args.secure ? "; Secure" : "";
+          document.cookie = `${name}=${encode(args.value)}; Path=/; SameSite=Strict${secure}`;
+        } else if (args.action === "delete") {
+          document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Strict`;
+        }
+        send("streamlit:setFrameHeight", { height: 0 });
+        send("streamlit:setComponentValue", {
+          value: args.command_id,
+          dataType: "json"
+        });
+      });
+
+      send("streamlit:componentReady", { apiVersion: 1 });
+      send("streamlit:setFrameHeight", { height: 0 });
+    </script>
+  </body>
+</html>

@@ -3,7 +3,7 @@
   "event_time_max": "2015-04-01 18:11:08",
   "new_consumer_history": {
     "events_consumed": 1189855,
-    "seconds": 20.953124799998477
+    "seconds": 6.085195599999679
   },
   "deterministic_replay": true,
   "offline_catch_up": {

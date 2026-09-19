@@ -1,172 +1,281 @@
 {
-  "profiles": {
-    "sales": {
-      "file": "sales_train.csv",
+  "dataset": "Toy Store E-Commerce Database",
+  "files": {
+    "website_sessions": {
+      "file": "website_sessions.csv",
+      "role": "Event/Entity",
+      "rows": 472871,
+      "columns": 9,
+      "column_list": [
+        "website_session_id",
+        "created_at",
+        "user_id",
+        "is_repeat_session",
+        "utm_source",
+        "utm_campaign",
+        "utm_content",
+        "device_type",
+        "http_referer"
+      ],
+      "dtypes": {
+        "website_session_id": "int64",
+        "created_at": "str",
+        "user_id": "int64",
+        "is_repeat_session": "int64",
+        "utm_source": "str",
+        "utm_campaign": "str",
+        "utm_content": "str",
+        "device_type": "str",
+        "http_referer": "str"
+      },
+      "null_counts": {
+        "website_session_id": 0,
+        "created_at": 0,
+        "user_id": 0,
+        "is_repeat_session": 0,
+        "utm_source": 83328,
+        "utm_campaign": 83328,
+        "utm_content": 83328,
+        "device_type": 0,
+        "http_referer": 39917
+      },
+      "primary_key": "website_session_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
+    },
+    "website_pageviews": {
+      "file": "website_pageviews.csv",
       "role": "Event",
-      "rows": 2935849,
-      "columns": 6,
-      "column_names": [
-        "date",
-        "date_block_num",
-        "shop_id",
-        "item_id",
-        "item_price",
-        "item_cnt_day"
+      "rows": 1188124,
+      "columns": 4,
+      "column_list": [
+        "website_pageview_id",
+        "created_at",
+        "website_session_id",
+        "pageview_url"
       ],
-      "size_kb": 92386.6,
-      "candidate_primary_keys": [],
-      "constant_columns": [],
+      "dtypes": {
+        "website_pageview_id": "int64",
+        "created_at": "str",
+        "website_session_id": "int64",
+        "pageview_url": "str"
+      },
       "null_counts": {
-        "date": 0,
-        "date_block_num": 0,
-        "shop_id": 0,
-        "item_id": 0,
-        "item_price": 0,
-        "item_cnt_day": 0
+        "website_pageview_id": 0,
+        "created_at": 0,
+        "website_session_id": 0,
+        "pageview_url": 0
       },
-      "distinct_counts": {
-        "date": 1034,
-        "date_block_num": 34,
-        "shop_id": 60,
-        "item_id": 21807,
-        "item_price": 19993,
-        "item_cnt_day": 198
-      },
-      "primary_key_note": "sales_train.csv has no natural single-column primary key. A surrogate sale_id is generated from source row order in load_and_join.py.",
-      "negative_item_price_rows": 1,
-      "negative_item_cnt_day_rows": 7356
+      "primary_key": "website_pageview_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
     },
-    "shops": {
-      "file": "shops.csv",
-      "role": "Entity",
-      "rows": 60,
-      "columns": 2,
-      "column_names": [
-        "shop_name",
-        "shop_id"
+    "orders": {
+      "file": "orders.csv",
+      "role": "Event",
+      "rows": 32313,
+      "columns": 8,
+      "column_list": [
+        "order_id",
+        "created_at",
+        "website_session_id",
+        "user_id",
+        "primary_product_id",
+        "items_purchased",
+        "price_usd",
+        "cogs_usd"
       ],
-      "size_kb": 2.9,
-      "candidate_primary_keys": [
-        "shop_name",
-        "shop_id"
-      ],
-      "constant_columns": [],
+      "dtypes": {
+        "order_id": "int64",
+        "created_at": "str",
+        "website_session_id": "int64",
+        "user_id": "int64",
+        "primary_product_id": "int64",
+        "items_purchased": "int64",
+        "price_usd": "float64",
+        "cogs_usd": "float64"
+      },
       "null_counts": {
-        "shop_name": 0,
-        "shop_id": 0
+        "order_id": 0,
+        "created_at": 0,
+        "website_session_id": 0,
+        "user_id": 0,
+        "primary_product_id": 0,
+        "items_purchased": 0,
+        "price_usd": 0,
+        "cogs_usd": 0
       },
-      "distinct_counts": {
-        "shop_name": 60,
-        "shop_id": 60
-      }
+      "primary_key": "order_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
     },
-    "items": {
-      "file": "items.csv",
+    "order_items": {
+      "file": "order_items.csv",
+      "role": "Event",
+      "rows": 40025,
+      "columns": 7,
+      "column_list": [
+        "order_item_id",
+        "created_at",
+        "order_id",
+        "product_id",
+        "is_primary_item",
+        "price_usd",
+        "cogs_usd"
+      ],
+      "dtypes": {
+        "order_item_id": "int64",
+        "created_at": "str",
+        "order_id": "int64",
+        "product_id": "int64",
+        "is_primary_item": "int64",
+        "price_usd": "float64",
+        "cogs_usd": "float64"
+      },
+      "null_counts": {
+        "order_item_id": 0,
+        "created_at": 0,
+        "order_id": 0,
+        "product_id": 0,
+        "is_primary_item": 0,
+        "price_usd": 0,
+        "cogs_usd": 0
+      },
+      "primary_key": "order_item_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
+    },
+    "order_item_refunds": {
+      "file": "order_item_refunds.csv",
+      "role": "Event",
+      "rows": 1731,
+      "columns": 5,
+      "column_list": [
+        "order_item_refund_id",
+        "created_at",
+        "order_item_id",
+        "order_id",
+        "refund_amount_usd"
+      ],
+      "dtypes": {
+        "order_item_refund_id": "int64",
+        "created_at": "str",
+        "order_item_id": "int64",
+        "order_id": "int64",
+        "refund_amount_usd": "float64"
+      },
+      "null_counts": {
+        "order_item_refund_id": 0,
+        "created_at": 0,
+        "order_item_id": 0,
+        "order_id": 0,
+        "refund_amount_usd": 0
+      },
+      "primary_key": "order_item_refund_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
+    },
+    "products": {
+      "file": "products.csv",
       "role": "Entity",
-      "rows": 22170,
+      "rows": 4,
       "columns": 3,
-      "column_names": [
-        "item_name",
-        "item_id",
-        "item_category_id"
+      "column_list": [
+        "product_id",
+        "created_at",
+        "product_name"
       ],
-      "size_kb": 1531.7,
-      "candidate_primary_keys": [
-        "item_name",
-        "item_id"
-      ],
-      "constant_columns": [],
-      "null_counts": {
-        "item_name": 0,
-        "item_id": 0,
-        "item_category_id": 0
+      "dtypes": {
+        "product_id": "int64",
+        "created_at": "str",
+        "product_name": "str"
       },
-      "distinct_counts": {
-        "item_name": 22170,
-        "item_id": 22170,
-        "item_category_id": 84
-      }
-    },
-    "item_categories": {
-      "file": "item_categories.csv",
-      "role": "Lookup",
-      "rows": 84,
-      "columns": 2,
-      "column_names": [
-        "item_category_name",
-        "item_category_id"
-      ],
-      "size_kb": 3.5,
-      "candidate_primary_keys": [
-        "item_category_name",
-        "item_category_id"
-      ],
-      "constant_columns": [],
       "null_counts": {
-        "item_category_name": 0,
-        "item_category_id": 0
+        "product_id": 0,
+        "created_at": 0,
+        "product_name": 0
       },
-      "distinct_counts": {
-        "item_category_name": 84,
-        "item_category_id": 84
-      }
+      "primary_key": "product_id",
+      "primary_key_unique": true,
+      "primary_key_nulls": 0
     }
   },
-  "integrity": {
-    "foreign_keys_resolve": {
-      "sales.shop_id -> shops.shop_id": true,
-      "sales.item_id -> items.item_id": true,
-      "items.item_category_id -> item_categories.item_category_id": true
+  "foreign_key_checks": {
+    "website_pageviews.website_session_id -> website_sessions.website_session_id": {
+      "orphan_rows": 0,
+      "pass": true
     },
-    "orphan_counts": {
-      "sales_without_shop": 0,
-      "sales_without_item": 0,
-      "items_without_category": 0
+    "orders.website_session_id -> website_sessions.website_session_id": {
+      "orphan_rows": 0,
+      "pass": true
+    },
+    "order_items.order_id -> orders.order_id": {
+      "orphan_rows": 0,
+      "pass": true
+    },
+    "order_items.product_id -> products.product_id": {
+      "orphan_rows": 0,
+      "pass": true
+    },
+    "order_item_refunds.order_item_id -> order_items.order_item_id": {
+      "orphan_rows": 0,
+      "pass": true
+    },
+    "order_item_refunds.order_id -> orders.order_id": {
+      "orphan_rows": 0,
+      "pass": true
+    }
+  },
+  "date_ranges": {
+    "website_sessions": {
+      "min": "2012-03-19 08:04:16",
+      "max": "2015-03-19 07:59:08",
+      "unparseable": 0
+    },
+    "website_pageviews": {
+      "min": "2012-03-19 08:04:16",
+      "max": "2015-03-19 07:59:32",
+      "unparseable": 0
+    },
+    "orders": {
+      "min": "2012-03-19 10:42:46",
+      "max": "2015-03-19 05:38:31",
+      "unparseable": 0
+    },
+    "order_items": {
+      "min": "2012-03-19 10:42:46",
+      "max": "2015-03-19 05:38:31",
+      "unparseable": 0
+    },
+    "order_item_refunds": {
+      "min": "2012-04-06 11:32:43",
+      "max": "2015-04-01 18:11:08",
+      "unparseable": 0
+    },
+    "products": {
+      "min": "2012-03-19 08:00:00",
+      "max": "2014-02-05 10:00:00",
+      "unparseable": 0
+    }
+  },
+  "multiplicity": {
+    "WebsiteSession_1_to_many_WebsitePageview": {
+      "min": 1,
+      "median": 2.0,
+      "max": 7
+    },
+    "Order_1_to_many_OrderItem": {
+      "min": 1,
+      "median": 1.0,
+      "max": 2
     }
   },
   "eligibility": {
-    "condition_1_three_related_files": {
-      "met": true,
-      "qualifying_files": [
-        "sales",
-        "shops",
-        "items"
-      ],
-      "lookup_files_excluded": [
-        "item_categories"
-      ]
-    },
-    "condition_2_one_to_many": {
-      "met": true,
-      "associations": [
-        {
-          "parent": "shops",
-          "child": "sales",
-          "key": "shop_id",
-          "children_min": 306,
-          "children_median": 42037,
-          "children_max": 235636
-        },
-        {
-          "parent": "items",
-          "child": "sales",
-          "key": "item_id",
-          "children_min": 1,
-          "children_median": 32,
-          "children_max": 31340
-        }
-      ]
-    },
-    "condition_3_timestamp": {
-      "met": true,
-      "field": "sales.date",
-      "min": "2013-01-01 00:00:00",
-      "max": "2015-10-31 00:00:00",
-      "span_days": 1033
-    },
-    "condition_4_volume": {
-      "met": true,
-      "event_rows": 2935849
-    }
+    "qualifying_files": 6,
+    "has_three_or_more_related_files": true,
+    "has_genuine_one_to_many": true,
+    "has_usable_timestamp": true,
+    "transactional_volume": 1735064,
+    "pageview_event_rows": 1188124
   }
 }

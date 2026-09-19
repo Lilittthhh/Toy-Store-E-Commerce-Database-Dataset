@@ -65,7 +65,7 @@ pageview_events AS (
             'gross_profit_usd', CASE WHEN p.reverse_rn = 1 THEN (o.price_usd - o.cogs_usd) ELSE NULL END
         ) AS payload
     FROM ranked_pageviews p
-    LEFT JOIN orders o
+    LEFT JOIN canonical_orders o
       ON o.website_session_id = p.website_session_id
 ),
 refund_events AS (
@@ -82,8 +82,8 @@ refund_events AS (
             'website_session_id', o.website_session_id,
             'refund_amount_usd', r.refund_amount_usd
         ) AS payload
-    FROM order_item_refunds r
-    JOIN orders o ON o.order_id = r.order_id
+    FROM canonical_order_item_refunds r
+    JOIN canonical_orders o ON o.order_id = r.order_id
 ),
 all_events AS (
     SELECT * FROM pageview_events
@@ -117,20 +117,20 @@ def verify_enrichment(cur):
         FROM website_pageviews p
         JOIN website_sessions s
           ON s.website_session_id = p.website_session_id
-        LEFT JOIN orders o
+        LEFT JOIN canonical_orders o
           ON o.website_session_id = p.website_session_id
         """
     )
     pageviews_after = int(cur.fetchone()[0])
 
-    cur.execute("SELECT COUNT(*) FROM order_item_refunds")
+    cur.execute("SELECT COUNT(*) FROM canonical_order_item_refunds")
     refunds_before = int(cur.fetchone()[0])
 
     cur.execute(
         """
         SELECT COUNT(*)
-        FROM order_item_refunds r
-        JOIN orders o ON o.order_id = r.order_id
+        FROM canonical_order_item_refunds r
+        JOIN canonical_orders o ON o.order_id = r.order_id
         """
     )
     refunds_after = int(cur.fetchone()[0])

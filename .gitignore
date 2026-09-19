@@ -1,0 +1,26 @@
+session1_parallel_compute/.venv/
+session1_parallel_compute/__pycache__/
+RetailMetricsWeb/.venv/
+RetailMetricsWeb/.env
+RetailMetricsWeb/db/session2_pre_migration_snapshot.json*
+RetailMetricsWeb/db/customer_portal_pre_migration_snapshot.json*
+RetailMetricsWeb/db/customer_portal_staging_pre_migration_snapshot.json*
+RetailMetricsWeb/backups/
+*.pyc
+
+# Local secrets
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# Python environments
+.venv/
+**/.venv/
+
+# Python caches
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+**/.pytest_cache/

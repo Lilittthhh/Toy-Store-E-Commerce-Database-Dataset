@@ -1,33 +1,30 @@
-Predict Future Sales - MIT 261 Session 1
+MIT 261 SESSION 1 - TOY STORE E-COMMERCE
+========================================
 
-"
-    "Place the four CSV files in either:
-"
-    "  session1_parallel_compute/Datasets/
-"
-    "or
-"
-    "  session1_parallel_compute/data/
-"
-    "or a sibling ../data/ folder.
+Copy these Kaggle files into datasets/:
+- website_sessions.csv
+- website_pageviews.csv
+- orders.csv
+- order_items.csv
+- order_item_refunds.csv
+- products.csv
 
-"
-    "Run in this order:
-"
-    "1. python profile_files.py
-"
-    "2. python load_and_join.py
-"
-    "3. python partition_strategy.py
-"
-    "4. python sequential_baseline.py
-"
-    "5. python parallel_compute.py
-"
-    "6. python benchmark.py
-"
-    "7. python partition_analysis.py
-"
-    "8. python render_diagrams.py   (Graphviz required)
-"
-    
+Run in this order:
+
+1. python profile_files.py
+2. python load_and_join.py
+3. python partition_strategy.py
+4. python sequential_baseline.py
+5. python parallel_compute.py
+6. python benchmark.py
+7. python partition_analysis.py
+8. python render_diagrams.py
+
+Core Session 1 design:
+- Base event stream: website_pageviews.csv
+- Parent entity/event: website_sessions.csv
+- Monetization event: orders.csv
+- Partition key: website_session_id
+- Event time: website_pageviews.created_at
+- Workload: per-session pageview count, session duration, conversion flag,
+  order revenue, and gross profit.

@@ -1,0 +1,1 @@
+"""RetailMetricsWeb FastAPI package."""

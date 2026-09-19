@@ -15,8 +15,8 @@
   "events_inserted": 1189855,
   "events_after": 1189855,
   "distinct_partition_keys": 472871,
-  "offset_min": 11898551,
-  "offset_max": 13088405,
+  "offset_min": 13088406,
+  "offset_max": 14278260,
   "event_time_min": "2012-03-19 08:04:16",
   "event_time_max": "2015-04-01 18:11:08",
   "sort_applied": "ORDER BY event_time, event_id before insertion",
@@ -42,8 +42,8 @@
   "skew_ratio": 1.0051381120472545,
   "log_size_bytes": 2478342144,
   "log_size_mb": 2363.53125,
-  "elapsed_s": 241.06835200000205,
-  "events_per_sec": 4935.757805321496,
+  "elapsed_s": 92.87702079999963,
+  "events_per_sec": 12811.080606926667,
   "reset": true,
   "enrichment_assertions_passed": true
 }

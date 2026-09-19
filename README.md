@@ -1,290 +1,222 @@
-# MIT261-UTTO — Session 1 Parallel Compute
+# Toy Store E-Commerce Database Dataset
+
+## MIT 261 – Parallel and Distributed Systems
+### Session 1: Foundations in In-Memory Cluster Compute
+
+This project uses the **Toy Store E-Commerce Database** from Kaggle to demonstrate data profiling, relational joins, partitioning strategy, sequential processing, bounded parallel processing with PySpark, benchmarking, partition-balance analysis, and correctness validation.
 
 ## Project Title
-**SaleFlow: Retail Sales and Revenue Intelligence Using the Predict Future Sales Dataset**
 
-## Course
-MIT 261 – Parallel and Distributed Systems  
-Session 1 – Foundations in In-Memory Cluster Compute
+**EcomJourney: A Parallel E-Commerce Analytics Framework for Customer Journey, Conversion, and Revenue Intelligence**
 
-## Dataset
-**Predict Future Sales** — Kaggle competition dataset
+## Dataset Source
 
-Source: https://www.kaggle.com/c/competitive-data-science-predict-future-sales
+**Kaggle Dataset:** Toy Store E-Commerce Database  
+https://www.kaggle.com/datasets/siddharth0935/toy-store-e-commerce-database
 
-### Files used
-- `sales_train.csv` — Event / transactional data
-- `shops.csv` — Entity data
-- `items.csv` — Entity data
-- `item_categories.csv` — Lookup data
+## Dataset Files
 
-The main transactional file contains **2,935,849 sales records**.
+The project uses the following related CSV files:
 
-## Relational Model
-The working dataset uses these joins:
+| File | Role | Approx. Rows | Description |
+|---|---|---:|---|
+| `website_sessions.csv` | Event / Entity | 472,871 | Website session and marketing-source information |
+| `website_pageviews.csv` | Event | 1,188,124 | Pageview activity associated with website sessions |
+| `orders.csv` | Event | 32,313 | Order-level sales information |
+| `order_items.csv` | Event | 40,025 | Individual products purchased per order |
+| `order_item_refunds.csv` | Event | 1,731 | Refund transactions for order items |
+| `products.csv` | Entity | 4 | Product master information |
 
-1. `sales_train.csv` → `shops.csv` on `shop_id`
-2. `sales_train.csv` → `items.csv` on `item_id`
-3. `items.csv` → `item_categories.csv` on `item_category_id`
+## Main Relationships
 
-Relationships:
-- Shop `1 → many` Sales
-- Item `1 → many` Sales
-- ItemCategory `1 → many` Items
+- `WebsiteSession 1 -> many WebsitePageview`
+- `WebsiteSession 1 -> 0..1 Order`
+- `Order 1 -> many OrderItem`
+- `Product 1 -> many OrderItem`
+- `OrderItem 1 -> 0..1 OrderItemRefund`
 
-The join was validated with no row duplication or loss:
-- Rows before join: **2,935,849**
-- Rows after join: **2,935,849**
-- Orphan foreign-key records: **0**
+The dataset provides genuine one-to-many relationships and timestamped event data suitable for parallel and distributed processing activities.
 
-## Partitioning Strategy
-- **Partition key:** `shop_id`
-- **Event-time field:** `date`
-- **Metric:** `revenue`
+## Session 1 Analytical Design
 
-Revenue is derived as:
+The main Session 1 workload starts with `website_pageviews.csv` as the event stream, enriches it with session information from `website_sessions.csv`, and left-joins optional order information from `orders.csv`.
+
+### Partition Key
 
 ```text
-revenue = item_price × item_cnt_day
+website_session_id
 ```
 
-The workload computes, per shop:
-- Transaction count
-- Total revenue
-- Mean revenue
+This key is owned by the website-session entity and naturally groups all pageview activity belonging to the same session.
 
-## Technologies
-- Python 3.11
-- pandas 2.3.3
-- PySpark 4.2.0
-- pyarrow 25.0.1
-- Graphviz
-- Java / Spark local mode
-- Windows 64-bit
+### Event Time
 
-## Machine Used for Benchmarking
-- CPU: 11th Gen Intel Core i5-1135G7
-- 4 cores / 8 threads
-- RAM: 12 GB
-- OS: Windows 64-bit
+```text
+website_pageviews.created_at
+```
+
+### Main Metrics
+
+For each website session, the program computes:
+
+- Pageview count
+- Session duration
+- Conversion flag
+- Order revenue
+- Gross profit
+
+Order-level revenue is aggregated carefully so it is not multiplied by the number of pageviews in the same session.
 
 ## Project Structure
 
 ```text
-MIT261-UTTO/
-└── session1_parallel_compute/
-    ├── architecture/
-    │   ├── architecture-session1.dot
-    │   └── architecture-session1.png
-    ├── datasets/
-    │   ├── sales_train.csv
-    │   ├── shops.csv
-    │   ├── items.csv
-    │   └── item_categories.csv
-    ├── docs/
-    │   ├── entity-model-session1.dot
-    │   └── entity-model-session1.png
-    ├── results/
-    │   ├── baseline_result.csv
-    │   ├── file_profile.json
-    │   ├── partition_sizes.csv
-    │   ├── partition_strategy.json
-    │   ├── session1_benchmark.csv
-    │   ├── shop_revenue.parquet
-    │   ├── validation_report.json
-    │   └── working_dataset.parquet
-    ├── benchmark.py
-    ├── config.py
-    ├── load_and_join.py
-    ├── parallel_compute.py
-    ├── partition_analysis.py
-    ├── partition_strategy.py
-    ├── profile_files.py
-    ├── render_diagrams.py
-    ├── sequential_baseline.py
-    └── RUN_ORDER.txt
+session1_parallel_compute/
+├── architecture/
+├── datasets/
+├── docs/
+├── results/
+├── benchmark.py
+├── config.py
+├── load_and_join.py
+├── parallel_compute.py
+├── partition_analysis.py
+├── partition_strategy.py
+├── profile_files.py
+├── render_diagrams.py
+├── sequential_baseline.py
+├── RUN_ORDER.txt
+└── README.md
 ```
 
-## Setup
+## Requirements
 
-### 1. Open the project folder
+Recommended environment:
 
-```powershell
-cd C:\Users\ureha\OneDrive\Desktop\MIT\MIT261-UTTO\session1_parallel_compute
-```
+- Python 3.11+
+- pandas
+- PySpark
+- pyarrow
+- Graphviz
 
-### 2. Activate the virtual environment
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-If PowerShell blocks script execution for the current session:
+Create and activate a virtual environment:
 
 ```powershell
+python -m venv .venv
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 .\.venv\Scripts\Activate.ps1
 ```
 
-### 3. Install required Python packages
+Install the required Python packages:
 
 ```powershell
 pip install pandas pyspark pyarrow
 ```
 
-Graphviz must also be installed and available through the Windows `PATH`.
+Graphviz is required only for diagram rendering.
 
-Verify Graphviz with:
+## Dataset Setup
 
-```powershell
-dot -V
+Place these files inside the `datasets/` directory:
+
+```text
+website_sessions.csv
+website_pageviews.csv
+orders.csv
+order_items.csv
+order_item_refunds.csv
+products.csv
 ```
 
-## Execution Order
-Run the scripts from the `session1_parallel_compute` directory.
+## Run Order
 
-### 1. Profile the dataset
+Execute the scripts in this order:
 
 ```powershell
 python profile_files.py
-```
-
-### 2. Load and join the dataset
-
-```powershell
 python load_and_join.py
-```
-
-This validates the relational joins, creates a surrogate `sale_id`, parses `date`, derives `revenue`, reconciles row counts, and writes `results/working_dataset.parquet`.
-
-### 3. Analyse the partition strategy
-
-```powershell
 python partition_strategy.py
-```
-
-The selected partition key is `shop_id`.
-
-### 4. Run the sequential baseline
-
-```powershell
 python sequential_baseline.py
-```
-
-### 5. Run the parallel Spark implementation
-
-```powershell
 python parallel_compute.py
-```
-
-The configured final run uses **4 partitions**.
-
-### 6. Run the benchmark
-
-```powershell
 python benchmark.py
-```
-
-Benchmark settings are 2, 4, and 8 Spark partitions plus the sequential baseline.
-
-### 7. Analyse partition balance and skew
-
-```powershell
 python partition_analysis.py
-```
-
-### 8. Generate diagrams
-
-```powershell
 python render_diagrams.py
 ```
 
-Produces:
-- `docs/entity-model-session1.png`
-- `architecture/architecture-session1.png`
+## Script Purpose
 
-## Benchmark Results
+| Script | Purpose |
+|---|---|
+| `profile_files.py` | Profiles files, row counts, PK/FK integrity, nulls, and multiplicity |
+| `load_and_join.py` | Loads and joins pageviews, sessions, and orders with row reconciliation |
+| `partition_strategy.py` | Evaluates candidate keys and documents the chosen partition strategy |
+| `sequential_baseline.py` | Runs the pandas sequential reference implementation |
+| `parallel_compute.py` | Runs the PySpark bounded parallel computation and validates correctness |
+| `benchmark.py` | Compares sequential execution with multiple Spark partition settings |
+| `partition_analysis.py` | Measures the physical balance of Spark partitions |
+| `render_diagrams.py` | Generates the entity-model and architecture diagrams |
 
-| Run | Partitions | Median Time (s) | Groups | Correct |
-|---|---:|---:|---:|---|
-| Sequential baseline | 1 / non-parallel | 0.0790 | 60 | Yes |
-| Parallel A | 2 | 0.8378 | 60 | Yes |
-| Parallel B | 4 | 0.7852 | 60 | Yes |
-| Parallel C | 8 | 0.7147 | 60 | Yes |
+## Generated Outputs
 
-The fastest tested Spark configuration was **8 partitions at 0.7147 seconds**.
+The scripts generate files such as:
 
-The pandas baseline remained faster for this workload because the final aggregation has only 60 groups and Spark adds JVM, scheduling, serialization, repartitioning, and coordination overhead.
+```text
+results/
+├── file_profile.json
+├── partition_strategy.json
+├── baseline_result.csv
+├── working_dataset.parquet
+├── session_journey_metrics.parquet
+├── validation_report.json
+├── session1_benchmark.csv
+└── partition_sizes.csv
+```
+
+Diagram files are generated under:
+
+```text
+docs/
+architecture/
+```
 
 ## Correctness Validation
-The Spark aggregate is compared against the pandas baseline after sorting by `shop_id`.
 
-Validation results:
-- Parallel groups: **60**
-- Baseline groups: **60**
-- Maximum transaction-count difference: **0**
-- Maximum revenue-total difference: **1.296401e-06**
-- Maximum revenue-mean difference: **2.2055247e-11**
-- Allowed total-revenue tolerance: **0.00023521702**
-- Result: **PASS**
+The parallel result is compared against the sequential baseline using:
 
-Transaction counts are checked exactly. Floating-point revenue values use a small scale-aware tolerance because Spark and pandas may sum floating-point values in different orders.
+- Number of output groups
+- Pageview count
+- Session duration
+- Conversion status
+- Revenue
+- Gross profit
 
-## Partition Balance and Skew
-The selected key has **60 distinct `shop_id` values**.
+Floating-point metrics are compared using a defined numerical tolerance.
 
-Observed shop-level counts:
-- Minimum: **306**
-- Median: **42,037**
-- Maximum: **235,636**
-- Key-level skew ratio: **770.05:1**
-- Largest shop key: **shop_id 31**
+## Parallel Benchmarking
 
-For the configured 4-partition run:
-- Partition 0: 1,273,996 rows
-- Partition 1: 318,666 rows
-- Partition 2: 751,967 rows
-- Partition 3: 591,220 rows
+The benchmark evaluates bounded Spark execution using:
 
-Possible future mitigation includes salting heavy shop keys, using a composite shop/time key, or range partitioning.
+```text
+2 partitions
+4 partitions
+8 partitions
+```
 
-## Join Strategy
-Spark uses broadcast joins for:
-- `shops.csv`
-- `items.csv`
-- `item_categories.csv`
+The purpose is to measure the effect of different partition counts on execution time while preserving identical results.
 
-These files are small relative to the 2.9-million-row sales file, so broadcasting avoids large dimension-side shuffle joins.
+## Continuity to Later Sessions
 
-## Notes for Windows
-Spark may display warnings related to `HADOOP_HOME`, `winutils.exe`, or the native Hadoop library. These warnings did not prevent computation from succeeding.
+This dataset can also support the succeeding MIT 261 activities:
 
-Because the Spark Parquet writer encountered a Windows Hadoop-related issue, the final small aggregate is serialized with pandas/pyarrow after Spark completes the distributed computation.
+- **Session 2:** Replay pageviews, sessions, and orders using `created_at` as event time.
+- **Session 3:** Model session, order, product, and refund components as service boundaries.
+- **Session 4:** Apply time-window analytics to traffic, conversion, revenue, and campaign performance.
+- **Session 5:** Containerize the analytics pipeline and runtime.
+- **Session 6:** Automate setup, validation, and testing through Infrastructure as Code and CI workflows.
 
-## Session 1 Outputs
-Important generated artifacts include:
-- `results/working_dataset.parquet`
-- `results/baseline_result.csv`
-- `results/shop_revenue.parquet`
-- `results/session1_benchmark.csv`
-- `results/validation_report.json`
-- `results/partition_sizes.csv`
-- `docs/entity-model-session1.png`
-- `architecture/architecture-session1.png`
+## Academic Use
 
-## Multi-Session Continuity
-- **Session 2:** Replay sales events chronologically using `date` as event time.
-- **Session 3:** Expose Shop, Item, ItemCategory, and Sales/Revenue as service/API boundaries.
-- **Session 4:** Compute daily/monthly revenue and transaction windows by `shop_id`.
-- **Session 5:** Containerize the Spark processing scripts and runtime environment.
-- **Session 6:** Provision the execution environment and automate profiling, validation, and benchmark regression checks.
+This repository was prepared for academic work in **MIT 261 – Parallel and Distributed Systems**. The original dataset remains the property of its respective Kaggle publisher and contributors.
 
-## Repository
-GitHub repository:
+## AI-Assisted Development Disclosure
 
-https://github.com/Lilittthhh/MIT261-UTTO
-
-## AI-Use Disclosure
-ChatGPT (OpenAI) was used to assist with interpretation of the activity/code guide, troubleshooting Python/PySpark/Windows environment issues, refining validation logic, and preparing documentation based on measured program outputs.
-
-The student executed the scripts and benchmark runs, reviewed the outputs, and verified the joins, computation, validation, partition analysis, and diagrams.
+AI tools were used as development assistance for code organization, debugging support, documentation, and explanation. Dataset selection, execution, validation, interpretation of results, and final submission remain the responsibility of the student.

@@ -1,0 +1,66 @@
+digraph RetailMetricsCustomerPortal {
+  graph [rankdir=LR, bgcolor="#F8FAFC", pad="0.3", nodesep="0.35", ranksep="1.1",
+         splines=polyline, fontname="Segoe UI", fontsize=22,
+         label="RetailMetrics — Customer Portal ERD (Migration 002)", labelloc=t];
+  node [shape=record, style="rounded,filled", fillcolor="white", color="#64748B",
+        fontname="Segoe UI", fontsize=9, margin="0.08,0.05"];
+  edge [color="#64748B", fontname="Segoe UI", fontsize=8, arrowsize=0.7];
+
+  app_users [fillcolor="#CCFBF1", label="{app_users (staff only)|PK app_user_id : BIGINT\lusername / email : UQ, NN\lpassword_hash : NN\lrole : admin / operations_staff / analyst\lis_active / lockout / reset / token_version\lrow_version / timestamps\l}"];
+  customer_accounts [fillcolor="#DBEAFE", label="{customer_accounts|PK customer_account_id : BIGINT identity\ldataset_user_id : BIGINT?, partial UQ (logical only)\lemail : VARCHAR(254), CI-UQ, NN\lpassword_hash : TEXT, NN\lis_active / lockout / reset / token_version\lrow_version / timestamps\l}"];
+  customer_profiles [fillcolor="#DBEAFE", label="{customer_profiles|PK/FK customer_account_id : BIGINT\lfirst_name / last_name : NN\lphone : VARCHAR?\lrow_version / timestamps\l}"];
+  customer_addresses [fillcolor="#DBEAFE", label="{customer_addresses|PK customer_address_id : BIGINT identity\lFK customer_account_id : BIGINT, NN\llabel / recipient / full address : NN\lphone / address_line_2 : ?\lis_default / is_active\lrow_version / timestamps\l}"];
+  payment_methods [fillcolor="#DBEAFE", label="{payment_methods (simulated)|PK payment_method_id : BIGINT identity\lFK customer_account_id : BIGINT, NN\lmethod_type / display_label : NN\lcard_brand / last_four : safe metadata only\lis_default / is_active\lrow_version / timestamps\l}"];
+
+  website_sessions [fillcolor="#E0E7FF", label="{website_sessions (read-only)|PK website_session_id : BIGINT\lcreated_at / dataset user_id : NN\lrepeat / UTM / device / referrer\l}"];
+  website_pageviews [fillcolor="#E0E7FF", label="{website_pageviews (read-only)|PK website_pageview_id : BIGINT\lFK website_session_id : BIGINT, NN\lcreated_at / pageview_url : NN\l}"];
+  products [fillcolor="#EDE9FE", label="{products|PK product_id : BIGINT\lproduct_name / created_at : NN\lFK created_by_app_user_id : BIGINT?\lrecord_origin : imported / staff, NN\lrow_version : NN\l}"];
+  product_catalog_details [fillcolor="#F3E8FF", label="{product_catalog_details|PK/FK product_id : BIGINT\ldescription / current price / COGS : NN\limage_url : ? / is_available : NN\lFK updated_by_app_user_id : BIGINT, NN\lrow_version / timestamps\l}"];
+
+  shopping_carts [fillcolor="#FEF3C7", label="{shopping_carts|PK shopping_cart_id : BIGINT identity\lFK customer_account_id : BIGINT, NN\lstatus : active / converted / abandoned\lFK converted_order_id : BIGINT?, UQ\lrow_version / timestamps\l}"];
+  cart_items [fillcolor="#FEF3C7", label="{cart_items|PK cart_item_id : BIGINT identity\lFK shopping_cart_id / product_id : BIGINT, NN\lquantity : 1..99\lunit_price_usd : positive\lUQ (shopping_cart_id, product_id)\lrow_version / timestamps\l}"];
+
+  orders [fillcolor="#FCE7F3", label="{orders|PK order_id : BIGINT\lFK/UQ website_session_id : BIGINT?\ldataset user_id : BIGINT?\lFK primary_product_id : BIGINT?\lFK customer_account_id : BIGINT?\lFK created_by_app_user_id : BIGINT?\lrecord_origin : imported / staff / customer\lorder_status : lifecycle status?\litems / price / COGS / row_version / timestamps\l}"];
+  order_items [fillcolor="#FCE7F3", label="{order_items|PK order_item_id : BIGINT\lFK order_id / product_id : BIGINT, NN\lprice / COGS : NN\lFK created_by_app_user_id : BIGINT?\lrecord_origin : matches parent, NN\lrow_version : NN\l(no customer_account_id)\l}"];
+  order_shipping_addresses [fillcolor="#FFE4E6", label="{order_shipping_addresses (snapshot)|PK/FK order_id : BIGINT\lFK customer_account_id : BIGINT, NN\lFK source_customer_address_id : BIGINT?\lrecipient/contact/full address snapshot\lrow_version / timestamps\l}"];
+  order_payments [fillcolor="#FFE4E6", label="{order_payments (simulated snapshot)|PK order_payment_id : BIGINT identity\lFK/UQ order_id : BIGINT, NN\lFK customer_account_id : BIGINT, NN\lFK payment_method_id : BIGINT?\lmethod / safe display / status / amount\lsimulated_reference / processed_at : ?\lrow_version / timestamps\l}"];
+  refund_requests [fillcolor="#DCFCE7", label="{refund_requests|PK refund_request_id : BIGINT identity\lFK customer / order / order_item : BIGINT, NN\lreason / amount / status : NN\lresolution_note : ?\lFK reviewed_by_app_user_id / reviewed_at : ?\lrow_version / timestamps\l}"];
+  order_item_refunds [fillcolor="#DCFCE7", label="{order_item_refunds|PK order_item_refund_id : BIGINT\lFK order_item_id / order_id : BIGINT, NN\lrefund_amount_usd : NN\lFK created_by_app_user_id : BIGINT?\lFK refund_request_id : BIGINT?\lrecord_origin : imported / staff / customer\lrow_version : NN\l}"];
+  historical_customer_summary [fillcolor="#F1F5F9", label="{historical_customer_summary (read-only view)|dataset_user_id\lsession / order counts; repeat visitor\ltotal spent / refund total\llast visit / latest UTM / device\lcanonical imported data only; no PII\l}"];
+
+  website_sessions -> website_pageviews [label="1 to 0..*", arrowhead=none];
+  website_sessions -> orders [label="1 to 0..1 when session ID non-null\n(UQ website_session_id)", arrowhead=none, color="#2563EB"];
+  products -> product_catalog_details [label="1 to 0..1", arrowhead=none];
+  products -> cart_items [label="1 to 0..*", arrowhead=none];
+  products -> order_items [label="1 to 0..*", arrowhead=none];
+  products -> orders [label="primary product: 1 to 0..*", arrowhead=none];
+
+  customer_accounts -> customer_profiles [label="1 to 0..1", arrowhead=none, color="#2563EB"];
+  customer_accounts -> customer_addresses [label="1 to 0..*", arrowhead=none, color="#2563EB"];
+  customer_accounts -> payment_methods [label="1 to 0..*", arrowhead=none, color="#2563EB"];
+  customer_accounts -> shopping_carts [label="1 to 0..*\n(at most 1 active)", arrowhead=none, color="#2563EB"];
+  customer_accounts -> orders [label="owner: 1 to 0..* customer orders", arrowhead=none, color="#2563EB"];
+  customer_accounts -> refund_requests [label="owner: 1 to 0..*", arrowhead=none, color="#2563EB"];
+  shopping_carts -> cart_items [label="1 to 0..*", arrowhead=none];
+  shopping_carts -> orders [label="converted to 0..1", arrowhead=none, style=dashed];
+
+  orders -> order_items [label="1 to 0..*\norigin matched", arrowhead=none];
+  orders -> order_shipping_addresses [label="1 to 0..1", arrowhead=none];
+  orders -> order_payments [label="1 to 0..1", arrowhead=none];
+  order_items -> refund_requests [label="1 to 0..*", arrowhead=none];
+  order_items -> order_item_refunds [label="1 to 0..*", arrowhead=none];
+  refund_requests -> order_item_refunds [label="1 to 0..1 processed result", arrowhead=none];
+  website_sessions -> historical_customer_summary [label="deidentified aggregate", arrowhead=none, style=dotted];
+  orders -> historical_customer_summary [label="canonical aggregate", arrowhead=none, style=dotted];
+  customer_addresses -> order_shipping_addresses [label="optional snapshot source", arrowhead=none, style=dashed];
+  payment_methods -> order_payments [label="optional snapshot source", arrowhead=none, style=dashed];
+
+  app_users -> products [label="creator 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+  app_users -> orders [label="creator 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+  app_users -> order_items [label="creator 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+  app_users -> order_item_refunds [label="processor 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+  app_users -> product_catalog_details [label="updated by 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+  app_users -> refund_requests [label="reviewer 1 to 0..*", arrowhead=none, style=dashed, color="#0F766E"];
+
+  note [shape=note, fillcolor="#FFF7ED", label="Identity boundaries\l• app_users = staff only\l• customer_accounts = customer login\l• dataset user_id = imported shopper ID\l• no app_users → dataset user_id FK\l• item customer ownership derives through order\l"];
+}

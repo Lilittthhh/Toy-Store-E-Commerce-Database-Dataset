@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f6f8f8;color:#0b2746;font-family:Arial,Helvetica,sans-serif;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f6f8f8;border-collapse:collapse;">
+    <tr><td align="center" style="padding:24px 12px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #dce5e5;border-radius:12px;border-collapse:separate;">
+        <tr><td style="padding:28px 26px 12px;">
+          <div style="color:#0f766e;font-size:20px;line-height:26px;font-weight:700;">RetailMetrics</div>
+          <div style="color:#60758a;font-size:13px;line-height:20px;">Toy Store Intelligence</div>
+        </td></tr>
+        <tr><td style="padding:8px 26px 22px;">
+          <h1 style="margin:0 0 10px;color:#0b2746;font-size:25px;line-height:31px;">Order confirmed</h1>
+          <p style="margin:0 0 12px;color:#324b62;font-size:15px;line-height:23px;">Thank you for your order. We've received your purchase and it is now being processed.</p>
+          <p style="margin:0;color:#324b62;font-size:14px;line-height:21px;">Hello $name,</p>
+        </td></tr>
+        <tr><td style="padding:0 26px 22px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#eef7f6;border:1px solid #cbe6e2;border-radius:8px;">
+            <tr><td style="padding:14px 16px;font-size:13px;line-height:22px;color:#324b62;">
+              <strong style="color:#0b2746;">Order number:</strong> #$order_id<br>
+              <strong style="color:#0b2746;">Order date/time:</strong> $date<br>
+              <strong style="color:#0b2746;">Order status:</strong> $status
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:0 26px 20px;">
+          <h2 style="margin:0 0 10px;color:#0b2746;font-size:17px;line-height:23px;">Items in your order</h2>
+          <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;table-layout:fixed;color:#324b62;font-size:12px;line-height:18px;">
+            <thead><tr style="background:#f0f4f6;color:#0b2746;">
+              <th align="left" width="42%" style="padding:10px 8px;font-weight:700;">Item</th>
+              <th align="center" width="12%" style="padding:10px 8px;font-weight:700;">Qty</th>
+              <th align="right" width="22%" style="padding:10px 8px;font-weight:700;">Unit Price</th>
+              <th align="right" width="24%" style="padding:10px 8px;font-weight:700;">Total</th>
+            </tr></thead>
+            <tbody>$items</tbody>
+          </table>
+        </td></tr>
+        <tr><td style="padding:0 26px 24px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#eef7f6;border:1px solid #cbe6e2;border-radius:8px;">
+            <tr><td style="padding:15px 16px;color:#0b2746;font-size:15px;font-weight:700;">Order total</td>
+                <td align="right" style="padding:15px 16px;color:#0f766e;font-size:20px;font-weight:700;white-space:nowrap;">$total</td></tr>
+          </table>
+        </td></tr>
+        <tr><td style="padding:0 26px 24px;">
+          <h2 style="margin:0 0 10px;color:#0b2746;font-size:17px;line-height:23px;">Delivery information</h2>
+          <p style="margin:0 0 10px;color:#324b62;font-size:14px;line-height:22px;"><strong style="color:#0b2746;">Shipping address</strong><br>$shipping</p>
+          <p style="margin:0;color:#324b62;font-size:14px;line-height:22px;"><strong style="color:#0b2746;">Simulated payment method</strong><br>$payment<br><strong style="color:#0b2746;">Payment status:</strong> $payment_status</p>
+        </td></tr>
+        <tr><td style="padding:18px 26px 26px;border-top:1px solid #e6ecef;color:#60758a;font-size:12px;line-height:19px;">
+          This email was generated automatically by RetailMetrics.<br>Please keep this email for your records.
+        </td></tr>
+        <tr><td style="padding:0 26px 24px;color:#60758a;font-size:12px;line-height:19px;">
+          <strong style="color:#0f766e;">Prepared by Rehanie Utto</strong><br>RetailMetrics
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>

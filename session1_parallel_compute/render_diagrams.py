@@ -1,162 +1,147 @@
-"""
-render_diagrams.py - Session 1 diagram generator.
-
-Creates:
-    docs/entity-model-session1.png
-    architecture/architecture-session1.png
-
-Requires Graphviz command-line tool ("dot") to be installed.
-Run:
-    python render_diagrams.py
-"""
-
 import shutil
 import subprocess
 import sys
-from pathlib import Path
 import config as cfg
 
-NAVY = "#1F3864"
 BLUE = "#2E74B5"
 LIGHT = "#D9EAF7"
-AMBER = "#C55A11"
-GREY = "#767171"
+GREEN = "#E2EFDA"
+AMBER = "#FFF2CC"
+NAVY = "#1F3864"
 
 ENTITY = f"""
 digraph EntityModel {{
   rankdir=LR;
   bgcolor="white";
-  splines=polyline;
-  nodesep=0.7;
-  ranksep=0.9;
   fontname="Helvetica";
   labelloc="t";
   fontsize=17;
-  label=<<b>Predict Future Sales — Session 1 Entity Model</b><br/>
-  <font point-size="11">multiplicity shown at both ends · monetization metric = revenue</font><br/>>;
+  label=<<b>Toy Store E-Commerce — Session 1 Entity Model</b><br/>
+  <font point-size="11">customer journey + conversion + revenue</font><br/>>;
 
   node [shape=plaintext fontname="Helvetica"];
-  edge [color="{BLUE}" fontname="Helvetica" fontsize=10 penwidth=1.6];
+  edge [color="{BLUE}" fontname="Helvetica" fontsize=9 penwidth=1.5];
 
-  Shop [label=<
+  Session [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="{LIGHT}"><b>Shop</b><br/><font point-size="9">Entity · shops.csv</font></td></tr>
-      <tr><td align="left"><b>shop_id : Integer «PK» «partitionKey»</b></td></tr>
-      <tr><td align="left">shop_name : String</td></tr>
+      <tr><td bgcolor="{LIGHT}"><b>WebsiteSession</b><br/><font point-size="9">Event/Entity · website_sessions.csv</font></td></tr>
+      <tr><td align="left"><b>website_session_id : Integer «PK» «partitionKey»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">user_id : Integer</td></tr>
+      <tr><td align="left">utm_source / campaign / content</td></tr>
+      <tr><td align="left">device_type : String</td></tr>
     </table>>];
 
-  Sale [label=<
+  Pageview [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="{LIGHT}"><b>Sale</b><br/><font point-size="9">Event · sales_train.csv</font></td></tr>
-      <tr><td align="left">sale_id : Integer «surrogatePK»</td></tr>
-      <tr><td align="left">date : Date <b>«eventTime»</b></td></tr>
-      <tr><td align="left">date_block_num : Integer</td></tr>
-      <tr><td align="left">shop_id : Integer «FK»</td></tr>
-      <tr><td align="left">item_id : Integer «FK»</td></tr>
-      <tr><td align="left">item_price : Double</td></tr>
-      <tr><td align="left">item_cnt_day : Double</td></tr>
-      <tr><td align="left" bgcolor="#FFF2CC"><b>revenue : Double «metricField»</b></td></tr>
+      <tr><td bgcolor="{LIGHT}"><b>WebsitePageview</b><br/><font point-size="9">Event · website_pageviews.csv</font></td></tr>
+      <tr><td align="left"><b>website_pageview_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp <b>«eventTime»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">pageview_url : String</td></tr>
+    </table>>];
+
+  Order [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="{AMBER}"><b>Order</b><br/><font point-size="9">Event · orders.csv</font></td></tr>
+      <tr><td align="left"><b>order_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">price_usd : Double «revenueMetric»</td></tr>
+      <tr><td align="left">cogs_usd : Double</td></tr>
     </table>>];
 
   Item [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="{LIGHT}"><b>Item</b><br/><font point-size="9">Entity · items.csv</font></td></tr>
-      <tr><td align="left"><b>item_id : Integer «PK»</b></td></tr>
-      <tr><td align="left">item_name : String</td></tr>
-      <tr><td align="left">item_category_id : Integer «FK»</td></tr>
+      <tr><td bgcolor="{GREEN}"><b>OrderItem</b><br/><font point-size="9">Event · order_items.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">product_id : Integer «FK»</td></tr>
+      <tr><td align="left">price_usd / cogs_usd : Double</td></tr>
     </table>>];
 
-  Category [label=<
+  Product [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="#F2F2F2"><b>ItemCategory</b><br/><font point-size="9">Lookup · item_categories.csv</font></td></tr>
-      <tr><td align="left"><b>item_category_id : Integer «PK»</b></td></tr>
-      <tr><td align="left">item_category_name : String</td></tr>
+      <tr><td bgcolor="#F2F2F2"><b>Product</b><br/><font point-size="9">Entity · products.csv</font></td></tr>
+      <tr><td align="left"><b>product_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">product_name : String</td></tr>
     </table>>];
 
-  Shop -> Sale [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\\nshop_id"];
-  Item -> Sale [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\\nitem_id"];
-  Category -> Item [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\\nitem_category_id"];
+  Refund [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FCE4D6"><b>OrderItemRefund</b><br/><font point-size="9">Event · order_item_refunds.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_refund_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_item_id : Integer «FK»</td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">refund_amount_usd : Double</td></tr>
+    </table>>];
+
+  Session -> Pageview [label="1    1..*\\nwebsite_session_id"];
+  Session -> Order [label="1    0..1\\nwebsite_session_id"];
+  Order -> Item [label="1    1..*\\norder_id"];
+  Product -> Item [label="1    0..*\\nproduct_id"];
+  Item -> Refund [label="1    0..1\\norder_item_id"];
 }}
 """
 
-ARCHITECTURE = f"""
+ARCH = f"""
 digraph Architecture {{
   rankdir=LR;
   bgcolor="white";
-  splines=ortho;
-  nodesep=0.4;
-  ranksep=0.8;
   fontname="Helvetica";
   labelloc="t";
   fontsize=17;
-  label=<<b>Predict Future Sales — Session 1 Ingestion and Parallel-Compute Layer</b><br/>
-  <font point-size="11">PySpark local mode · bounded parallelism = {cfg.CHOSEN_PARTITIONS}</font><br/>>;
+  label=<<b>Toy Store E-Commerce — Session 1 Parallel-Compute Layer</b><br/>
+  <font point-size="11">customer journey, conversion and revenue analytics</font><br/>>;
 
-  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=10 penwidth=1.3];
-  edge [color="{BLUE}" penwidth=1.4 fontname="Helvetica" fontsize=9];
+  node [shape=box style="rounded,filled" fontname="Helvetica" fontsize=9];
+  edge [color="{BLUE}"];
 
-  sales [label="sales_train.csv\\nEvent · ~2.9M rows" fillcolor="{LIGHT}" color="{BLUE}"];
-  shops [label="shops.csv\\nEntity" fillcolor="{LIGHT}" color="{BLUE}"];
-  items [label="items.csv\\nEntity" fillcolor="{LIGHT}" color="{BLUE}"];
-  cats [label="item_categories.csv\\nLookup" fillcolor="#F2F2F2" color="{GREY}"];
+  pv [label="website_pageviews.csv\\n1,188,124 events" fillcolor="{LIGHT}"];
+  sess [label="website_sessions.csv\\n472,871 sessions" fillcolor="{LIGHT}"];
+  ord [label="orders.csv\\n32,313 orders" fillcolor="{AMBER}"];
 
-  profile [label="profile_files.py\\neligibility + inventory" fillcolor="#FFF2CC" color="{AMBER}"];
-  join [label="load_and_join.py\\nvalidated joins\\nderive revenue" fillcolor="#FFF2CC" color="{AMBER}"];
-  repart [label="repartition({cfg.CHOSEN_PARTITIONS}, 'shop_id')\\nbounded parallelism" fillcolor="#E2EFDA" color="#548235"];
-  agg [label="parallel_compute.py\\ngroupBy(shop_id)\\ncount · sum · avg" fillcolor="#E2EFDA" color="#548235"];
-  base [label="sequential_baseline.py\\npandas reference" fillcolor="#FCE4D6" color="{AMBER}"];
-  valid [label="correctness validation\\ncounts exact · floats Δ < 1e-6" fillcolor="#FCE4D6" color="{AMBER}"];
-
-  output [label="shop_revenue.parquet\\nshop_id · txn_count\\nrevenue_total · revenue_mean" fillcolor="{LIGHT}" color="{NAVY}" penwidth=2.2];
+  profile [label="profile_files.py\\nprofile + PK/FK checks" fillcolor="#FFF2CC"];
+  join [label="load_and_join.py\\npageviews -> sessions -> orders\\nrow reconciliation" fillcolor="#FFF2CC"];
+  repart [label="repartition({cfg.CHOSEN_PARTITIONS}, 'website_session_id')" fillcolor="#E2EFDA"];
+  agg [label="parallel_compute.py\\npageviews · duration · conversion\\nrevenue · gross profit" fillcolor="#E2EFDA"];
+  base [label="sequential_baseline.py\\npandas reference" fillcolor="#FCE4D6"];
+  valid [label="correctness validation" fillcolor="#FCE4D6"];
+  out [label="session_journey_metrics.parquet" fillcolor="{LIGHT}" color="{NAVY}"];
   bench [label="session1_benchmark.csv" fillcolor="{LIGHT}" color="{NAVY}"];
 
-  sales -> profile;
-  shops -> profile;
-  items -> profile;
-  cats -> profile;
+  pv -> profile;
+  sess -> profile;
+  ord -> profile;
   profile -> join;
   join -> repart;
   repart -> agg;
   join -> base;
   agg -> valid;
   base -> valid;
-  valid -> output;
+  valid -> out;
   agg -> bench;
 }}
 """
 
-def render(dot_text: str, output: Path) -> None:
+def render(text, output):
     dot = shutil.which("dot")
     dot_file = output.with_suffix(".dot")
-    dot_file.write_text(dot_text, encoding="utf-8")
-
+    dot_file.write_text(text, encoding="utf-8")
     if not dot:
-        raise RuntimeError(
-            "Graphviz 'dot' was not found. The .dot source was created at "
-            f"{dot_file}. Install Graphviz, then run this script again."
-        )
+        raise RuntimeError(f"Graphviz 'dot' not found. DOT source written to {dot_file}")
+    subprocess.run([dot, "-Tpng", str(dot_file), "-o", str(output)], check=True)
 
-    subprocess.run(
-        [dot, "-Tpng", str(dot_file), "-o", str(output)],
-        check=True,
-    )
-
-def main() -> int:
-    cfg.DOCS_DIR.mkdir(parents=True, exist_ok=True)
-    cfg.ARCH_DIR.mkdir(parents=True, exist_ok=True)
-
-    entity_out = cfg.DOCS_DIR / "entity-model-session1.png"
-    arch_out = cfg.ARCH_DIR / "architecture-session1.png"
-
+def main():
     try:
-        render(ENTITY, entity_out)
-        render(ARCHITECTURE, arch_out)
+        render(ENTITY, cfg.DOCS_DIR / "entity-model-session1.png")
+        render(ARCH, cfg.ARCH_DIR / "architecture-session1.png")
     except Exception as exc:
         print(f"Diagram rendering failed: {exc}")
         return 1
 
-    print(f"Wrote {entity_out}")
-    print(f"Wrote {arch_out}")
+    print(f"Wrote {cfg.DOCS_DIR / 'entity-model-session1.png'}")
+    print(f"Wrote {cfg.ARCH_DIR / 'architecture-session1.png'}")
     return 0
 
 if __name__ == "__main__":

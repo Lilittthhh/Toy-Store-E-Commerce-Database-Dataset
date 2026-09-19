@@ -1,0 +1,25 @@
+From your project folder, start FastAPI first, then Streamlit in a second terminal.
+
+In Terminal 1:
+
+cd C:\Users\ureha\OneDrive\Desktop\MIT\MIT261-UTTO\RetailMetricsWeb
+.\.venv\Scripts\Activate.ps1
+python -m uvicorn api.main:app --host 127.0.0.1 --port 8000
+
+Leave that terminal running.
+
+Then open a new terminal and run:
+
+cd C:\Users\ureha\OneDrive\Desktop\MIT\MIT261-UTTO\RetailMetricsWeb
+.\.venv\Scripts\Activate.ps1
+python -m streamlit run frontend/app.py
+
+Then open:
+
+http://localhost:8501
+
+If PowerShell blocks the virtual environment activation, run this once in that terminal first:
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
+
+To stop either server later, click its terminal and press Ctrl+C.

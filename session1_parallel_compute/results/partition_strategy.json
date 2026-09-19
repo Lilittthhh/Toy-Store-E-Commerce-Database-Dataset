@@ -1,179 +1,58 @@
 {
-  "chosen_key": "shop_id",
-  "owned_by": "sales + shops",
-  "join_survival": {
-    "key": "shop_id",
-    "present_after_join": true,
-    "entered_from": "sales + shops",
-    "nulls_after_join": 0,
-    "verdict": "survives the join intact"
-  },
-  "prediction": {
-    "distinct": 60,
-    "min": 306,
-    "median": 42037,
-    "max": 235636,
-    "skew_ratio": 770.05
-  },
-  "alternative": {
-    "column": "item_id",
-    "source_file": "sales + items",
-    "distinct": 21807,
+  "chosen_partition_key": "website_session_id",
+  "entity_owner": "WebsiteSession (website_sessions.csv)",
+  "relationship": "WebsiteSession 1 -> many WebsitePageviews",
+  "predicted_records_per_key": {
+    "key": "website_session_id",
+    "distinct": 472871,
     "min": 1,
-    "median": 32,
-    "max": 31340,
-    "skew_ratio": 31340.0,
-    "viable": true,
-    "rejected_because": ""
+    "median": 2.0,
+    "max": 7,
+    "mean": 2.5125753112371028,
+    "skew_ratio_max_min": 7.0,
+    "largest_key": "79850"
   },
-  "all_candidates": [
-    {
-      "column": "sale_id",
-      "source_file": "derived from sales row order",
-      "distinct": 2935849,
+  "workload": "Compute pageview count, session duration, conversion flag, order revenue, and gross profit per website_session_id.",
+  "candidates": {
+    "website_session_id": {
+      "key": "website_session_id",
+      "distinct": 472871,
       "min": 1,
-      "median": 1,
-      "max": 1,
-      "skew_ratio": 1.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key; 2,935,849 distinct values is near-unique"
+      "median": 2.0,
+      "max": 7,
+      "mean": 2.5125753112371028,
+      "skew_ratio_max_min": 7.0,
+      "largest_key": "79850"
     },
-    {
-      "column": "date",
-      "source_file": "sales",
-      "distinct": 1034,
-      "min": 1123,
-      "median": 2590,
-      "max": 9434,
-      "skew_ratio": 8.4,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
-    },
-    {
-      "column": "date_block_num",
-      "source_file": "sales",
-      "distinct": 34,
-      "min": 50588,
-      "median": 87568,
-      "max": 143246,
-      "skew_ratio": 2.83,
-      "viable": true,
-      "rejected_because": ""
-    },
-    {
-      "column": "shop_id",
-      "source_file": "sales + shops",
-      "distinct": 60,
-      "min": 306,
-      "median": 42037,
-      "max": 235636,
-      "skew_ratio": 770.05,
-      "viable": true,
-      "rejected_because": ""
-    },
-    {
-      "column": "item_id",
-      "source_file": "sales + items",
-      "distinct": 21807,
+    "user_id": {
+      "key": "user_id",
+      "distinct": 394318,
       "min": 1,
-      "median": 32,
-      "max": 31340,
-      "skew_ratio": 31340.0,
-      "viable": true,
-      "rejected_because": ""
+      "median": 2.0,
+      "max": 26,
+      "mean": 3.0131112452386146,
+      "skew_ratio_max_min": 26.0,
+      "largest_key": "273501"
     },
-    {
-      "column": "item_price",
-      "source_file": "sales",
-      "distinct": 19993,
-      "min": 1,
-      "median": 1,
-      "max": 291352,
-      "skew_ratio": 291352.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
+    "utm_source": {
+      "key": "utm_source",
+      "distinct": 4,
+      "min": 17608,
+      "median": 187987.0,
+      "max": 794542,
+      "mean": 297031.0,
+      "skew_ratio_max_min": 45.12392094502499,
+      "largest_key": "gsearch"
     },
-    {
-      "column": "item_cnt_day",
-      "source_file": "sales",
-      "distinct": 198,
-      "min": 1,
-      "median": 3,
-      "max": 2629372,
-      "skew_ratio": 2629372.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
-    },
-    {
-      "column": "revenue",
-      "source_file": "derived in join",
-      "distinct": 24771,
-      "min": 1,
-      "median": 1,
-      "max": 275443,
-      "skew_ratio": 275443.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
-    },
-    {
-      "column": "shop_name",
-      "source_file": "shops",
-      "distinct": 60,
-      "min": 306,
-      "median": 42037,
-      "max": 235636,
-      "skew_ratio": 770.05,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
-    },
-    {
-      "column": "item_name",
-      "source_file": "items",
-      "distinct": 21807,
-      "min": 1,
-      "median": 32,
-      "max": 31340,
-      "skew_ratio": 31340.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
-    },
-    {
-      "column": "item_category_id",
-      "source_file": "items + item_categories",
-      "distinct": 84,
-      "min": 1,
-      "median": 6917,
-      "max": 564652,
-      "skew_ratio": 564652.0,
-      "viable": true,
-      "rejected_because": ""
-    },
-    {
-      "column": "item_category_name",
-      "source_file": "item_categories",
-      "distinct": 84,
-      "min": 1,
-      "median": 6917,
-      "max": 564652,
-      "skew_ratio": 564652.0,
-      "viable": false,
-      "rejected_because": "identifier/measure/time/free-text, not a grouping key"
+    "device_type": {
+      "key": "device_type",
+      "distinct": 2,
+      "min": 306184,
+      "median": 594062.0,
+      "max": 881940,
+      "mean": 594062.0,
+      "skew_ratio_max_min": 2.8804248425783188,
+      "largest_key": "desktop"
     }
-  ],
-  "workload": "Compute transaction count, total revenue, and mean revenue per shop_id across the joined 2,935,849-row dataset.",
-  "output_schema": {
-    "shop_id": "int64",
-    "txn_count": "int64",
-    "revenue_total": "double",
-    "revenue_mean": "double"
-  },
-  "join": {
-    "rows_before": 2935849,
-    "rows_after": 2935849,
-    "delta": 0,
-    "columns_after": 12,
-    "join_seconds": 2.2088,
-    "join_path": "sales |> shops on shop_id |> items on item_id |> item_categories on item_category_id",
-    "derived_metric": "revenue = item_price * item_cnt_day"
   }
 }

@@ -2,54 +2,72 @@
 digraph EntityModel {
   rankdir=LR;
   bgcolor="white";
-  splines=polyline;
-  nodesep=0.7;
-  ranksep=0.9;
   fontname="Helvetica";
   labelloc="t";
   fontsize=17;
-  label=<<b>Predict Future Sales — Session 1 Entity Model</b><br/>
-  <font point-size="11">multiplicity shown at both ends · monetization metric = revenue</font><br/>>;
+  label=<<b>Toy Store E-Commerce — Session 1 Entity Model</b><br/>
+  <font point-size="11">customer journey + conversion + revenue</font><br/>>;
 
   node [shape=plaintext fontname="Helvetica"];
-  edge [color="#2E74B5" fontname="Helvetica" fontsize=10 penwidth=1.6];
+  edge [color="#2E74B5" fontname="Helvetica" fontsize=9 penwidth=1.5];
 
-  Shop [label=<
+  Session [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="#D9EAF7"><b>Shop</b><br/><font point-size="9">Entity · shops.csv</font></td></tr>
-      <tr><td align="left"><b>shop_id : Integer «PK» «partitionKey»</b></td></tr>
-      <tr><td align="left">shop_name : String</td></tr>
+      <tr><td bgcolor="#D9EAF7"><b>WebsiteSession</b><br/><font point-size="9">Event/Entity · website_sessions.csv</font></td></tr>
+      <tr><td align="left"><b>website_session_id : Integer «PK» «partitionKey»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">user_id : Integer</td></tr>
+      <tr><td align="left">utm_source / campaign / content</td></tr>
+      <tr><td align="left">device_type : String</td></tr>
     </table>>];
 
-  Sale [label=<
+  Pageview [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="#D9EAF7"><b>Sale</b><br/><font point-size="9">Event · sales_train.csv</font></td></tr>
-      <tr><td align="left">sale_id : Integer «surrogatePK»</td></tr>
-      <tr><td align="left">date : Date <b>«eventTime»</b></td></tr>
-      <tr><td align="left">date_block_num : Integer</td></tr>
-      <tr><td align="left">shop_id : Integer «FK»</td></tr>
-      <tr><td align="left">item_id : Integer «FK»</td></tr>
-      <tr><td align="left">item_price : Double</td></tr>
-      <tr><td align="left">item_cnt_day : Double</td></tr>
-      <tr><td align="left" bgcolor="#FFF2CC"><b>revenue : Double «metricField»</b></td></tr>
+      <tr><td bgcolor="#D9EAF7"><b>WebsitePageview</b><br/><font point-size="9">Event · website_pageviews.csv</font></td></tr>
+      <tr><td align="left"><b>website_pageview_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">created_at : Timestamp <b>«eventTime»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">pageview_url : String</td></tr>
+    </table>>];
+
+  Order [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FFF2CC"><b>Order</b><br/><font point-size="9">Event · orders.csv</font></td></tr>
+      <tr><td align="left"><b>order_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">website_session_id : Integer «FK»</td></tr>
+      <tr><td align="left">created_at : Timestamp</td></tr>
+      <tr><td align="left">price_usd : Double «revenueMetric»</td></tr>
+      <tr><td align="left">cogs_usd : Double</td></tr>
     </table>>];
 
   Item [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="#D9EAF7"><b>Item</b><br/><font point-size="9">Entity · items.csv</font></td></tr>
-      <tr><td align="left"><b>item_id : Integer «PK»</b></td></tr>
-      <tr><td align="left">item_name : String</td></tr>
-      <tr><td align="left">item_category_id : Integer «FK»</td></tr>
+      <tr><td bgcolor="#E2EFDA"><b>OrderItem</b><br/><font point-size="9">Event · order_items.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">product_id : Integer «FK»</td></tr>
+      <tr><td align="left">price_usd / cogs_usd : Double</td></tr>
     </table>>];
 
-  Category [label=<
+  Product [label=<
     <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
-      <tr><td bgcolor="#F2F2F2"><b>ItemCategory</b><br/><font point-size="9">Lookup · item_categories.csv</font></td></tr>
-      <tr><td align="left"><b>item_category_id : Integer «PK»</b></td></tr>
-      <tr><td align="left">item_category_name : String</td></tr>
+      <tr><td bgcolor="#F2F2F2"><b>Product</b><br/><font point-size="9">Entity · products.csv</font></td></tr>
+      <tr><td align="left"><b>product_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">product_name : String</td></tr>
     </table>>];
 
-  Shop -> Sale [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\nshop_id"];
-  Item -> Sale [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\nitem_id"];
-  Category -> Item [dir=both arrowtail=none arrowhead=none xlabel="1           0..*\nitem_category_id"];
+  Refund [label=<
+    <table border="0" cellborder="1" cellspacing="0" cellpadding="5">
+      <tr><td bgcolor="#FCE4D6"><b>OrderItemRefund</b><br/><font point-size="9">Event · order_item_refunds.csv</font></td></tr>
+      <tr><td align="left"><b>order_item_refund_id : Integer «PK»</b></td></tr>
+      <tr><td align="left">order_item_id : Integer «FK»</td></tr>
+      <tr><td align="left">order_id : Integer «FK»</td></tr>
+      <tr><td align="left">refund_amount_usd : Double</td></tr>
+    </table>>];
+
+  Session -> Pageview [label="1    1..*\nwebsite_session_id"];
+  Session -> Order [label="1    0..1\nwebsite_session_id"];
+  Order -> Item [label="1    1..*\norder_id"];
+  Product -> Item [label="1    0..*\nproduct_id"];
+  Item -> Refund [label="1    0..1\norder_item_id"];
 }

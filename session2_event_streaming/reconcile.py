@@ -40,7 +40,7 @@ def load_session1_reference():
             COALESCE(o.price_usd,0)::double precision AS order_revenue_usd,
             COALESCE(o.price_usd-o.cogs_usd,0)::double precision AS gross_profit_usd
         FROM p
-        LEFT JOIN orders o USING (website_session_id)
+        LEFT JOIN canonical_orders o USING (website_session_id)
         ORDER BY p.website_session_id
         """
         return (

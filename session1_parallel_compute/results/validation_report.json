@@ -1,22 +1,25 @@
 {
-  "parallelism": 4,
-  "parallel_seconds": 2.3054,
   "join": {
-    "rows_before": 2935849,
-    "rows_after": 2935849,
-    "delta": 0,
-    "join_seconds": 21.1464,
-    "broadcast_hash_joins": 6,
-    "sort_merge_joins": 0
+    "rows_before": 1188124,
+    "rows_after": 1188124,
+    "join_seconds": 16.41788589999487,
+    "broadcast_hash_join_occurrences": 2,
+    "sort_merge_join_occurrences": 2
   },
+  "configured_partitions": 4,
+  "actual_partitions": 4,
+  "parallel_seconds": 1.7848839000071166,
   "validation": {
-    "parallel_groups": 60,
-    "baseline_groups": 60,
-    "max_txn_count_difference": 0,
-    "max_revenue_total_difference": 1.296401023864746e-06,
-    "max_revenue_mean_difference": 2.205524651799351e-11,
+    "parallel_groups": 472871,
+    "baseline_groups": 472871,
+    "max_differences": {
+      "pageview_count": 0.0,
+      "session_duration_seconds": 0.0,
+      "converted": 0.0,
+      "order_revenue_usd": 0.0,
+      "gross_profit_usd": 0.0
+    },
     "tolerance": 1e-06,
-    "revenue_total_allowed_tolerance": 0.00023521701905000273,
-    "correct": true
+    "result": "PASS"
   }
 }
