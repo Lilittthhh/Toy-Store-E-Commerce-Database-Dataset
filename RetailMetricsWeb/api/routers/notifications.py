@@ -14,7 +14,7 @@ from core.dependencies import require_customer, require_roles
 from core.models import AppUser, CustomerAccount, Role
 from db.connection import get_db_connection
 from services.notifications.phone import normalize_ph_mobile
-from services.notifications.providers import Message, ProviderFailure, delivery_mode, provider_for
+from services.notifications.providers import Message, ProviderFailure, delivery_mode, gateway_url_ready, provider_for
 
 
 router = APIRouter(tags=["Notifications"])
@@ -35,7 +35,7 @@ def notification_config(_: AppUser = Depends(require_roles(Role.ADMIN)), setting
         (email_mode == "smtp" and settings.smtp_live_send_enabled)
         or (email_mode == "infobip" and settings.infobip_live_send_enabled)
     )
-    sms_live = sms_mode == "brevo"
+    sms_live = sms_mode in {"brevo", "android_gateway"}
     return {
         "mode": settings.notification_mode,
         "email_provider": email_mode,
@@ -50,6 +50,9 @@ def notification_config(_: AppUser = Depends(require_roles(Role.ADMIN)), setting
         "sms_live_enabled": sms_live,
         "brevo_api_key_configured": bool(settings.brevo_api_key),
         "brevo_sms_sender_configured": bool(settings.brevo_sms_sender),
+        "sms_gateway_url_configured": gateway_url_ready(settings.sms_gateway_url),
+        "sms_gateway_username_configured": bool(settings.sms_gateway_username),
+        "sms_gateway_password_configured": bool(settings.sms_gateway_password),
     }
 
 

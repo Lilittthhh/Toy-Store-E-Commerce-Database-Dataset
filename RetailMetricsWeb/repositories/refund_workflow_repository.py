@@ -22,7 +22,9 @@ class RefundWorkflowRepository(Protocol):
     def list_customer_requests(self, customer_id: int) -> list[dict]: ...
     def get_customer_request(self, customer_id: int, request_id: int) -> dict | None: ...
     def eligibility(self, customer_id: int, order_id: int) -> list[dict]: ...
-    def list_staff_requests(self, status_filter: str | None, limit: int, offset: int) -> tuple[list[dict], int]: ...
+    def list_staff_requests(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ) -> tuple[list[dict], int]: ...
     def get_staff_request(self, request_id: int) -> dict | None: ...
     def approve(self, request_id: int, row_version: int, reviewer_id: int, note: str | None) -> dict: ...
     def reject(self, request_id: int, row_version: int, reviewer_id: int, note: str) -> dict: ...
@@ -192,11 +194,16 @@ class PostgresRefundWorkflowRepository:
                 })
             return result
 
-    def list_staff_requests(self, status_filter: str | None, limit: int, offset: int) -> tuple[list[dict], int]:
+    def list_staff_requests(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ) -> tuple[list[dict], int]:
         where, params = "TRUE", []
-        if status_filter:
+        if actionable_only:
+            where = "rr.request_status IN ('pending','approved')"
+        elif status_filter:
             where = "rr.request_status=%s"
             params.append(status_filter)
+        ordering = "rr.created_at ASC, rr.refund_request_id ASC" if actionable_only else "rr.refund_request_id DESC"
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(f"SELECT COUNT(*) FROM public.refund_requests rr WHERE {where}", params)
             total = int(cur.fetchone()["count"])
@@ -209,7 +216,7 @@ class PostgresRefundWorkflowRepository:
                     FROM public.refund_requests rr
                     JOIN public.order_items oi ON oi.order_item_id=rr.order_item_id
                     JOIN public.products p ON p.product_id=oi.product_id
-                    WHERE {where} ORDER BY rr.refund_request_id DESC LIMIT %s OFFSET %s""",
+                    WHERE {where} ORDER BY {ordering} LIMIT %s OFFSET %s""",
                 [*params, limit, offset],
             )
             return [dict(row) for row in cur.fetchall()], total

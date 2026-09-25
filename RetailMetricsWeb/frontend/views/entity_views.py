@@ -227,13 +227,21 @@ def _render_commerce_orders(client: APIClient, role: str) -> None:
     )
     order_workflow.render(client)
     st.divider()
-    with st.expander("Historical order reference", expanded=False):
-        st.caption("Past imported purchases are available here for read-only reference.")
+    with st.expander("All order records", expanded=False):
+        st.caption("Open this section to browse customer order history and earlier imported purchases.")
+        order_workflow.render_history(client)
+        st.divider()
+        st.subheader("Earlier order records")
         limit = st.selectbox("Rows per page", [10, 25, 50, 100], index=1, key="operations_historical_orders_limit")
         offset = st.session_state.setdefault("operations_historical_orders_offset", 0)
         try:
             result = client.get("/orders", {"origin": "imported", "limit": limit, "offset": offset})
-            display_rows(_operations_historical_order_rows(result["items"]), "Order #")
+            displayed = (
+                _order_table_rows(result["items"], role)
+                if role == "analyst"
+                else _operations_historical_order_rows(result["items"])
+            )
+            display_rows(displayed, "Order #")
             pagination_controls("operations_historical_orders", result["total"], limit)
             _render_order_details(result["items"], role)
         except APIError as exc:
@@ -279,7 +287,7 @@ def _render_order_details(rows: list[dict], role: str | None) -> None:
 def render(client: APIClient, entity: str) -> None:
     title, path, id_column = PATHS[entity]
     role = current_role()
-    if role in {"admin", "operations_staff"} and entity == "orders":
+    if entity == "orders":
         _render_commerce_orders(client, role)
         return
     if role == "analyst" and entity == "products":

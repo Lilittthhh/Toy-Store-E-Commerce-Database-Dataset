@@ -14,7 +14,9 @@ class OrderWorkflowConflict(ValueError):
 
 
 class OrderWorkflowRepository(Protocol):
-    def list_customer_orders(self, status_filter: str | None, limit: int, offset: int) -> tuple[list[dict], int]: ...
+    def list_customer_orders(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ) -> tuple[list[dict], int]: ...
     def transition(self, order_id: int, row_version: int, action: str) -> tuple[dict, str]: ...
 
 
@@ -31,17 +33,22 @@ class PostgresOrderWorkflowRepository:
                   FROM public.orders o
                   JOIN public.order_payments op ON op.order_id=o.order_id"""
 
-    def list_customer_orders(self, status_filter: str | None, limit: int, offset: int) -> tuple[list[dict], int]:
+    def list_customer_orders(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ) -> tuple[list[dict], int]:
         where = "o.record_origin='customer'"
         params: list = []
-        if status_filter:
+        if actionable_only:
+            where += " AND o.order_status IN ('pending','processing')"
+        elif status_filter:
             where += " AND o.order_status=%s"
             params.append(status_filter)
+        ordering = "o.created_at ASC, o.order_id ASC" if actionable_only else "o.order_id DESC"
         with self.conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(f"SELECT COUNT(*) FROM public.orders o WHERE {where}", params)
             total = int(cur.fetchone()["count"])
             cur.execute(
-                self._projection() + f" WHERE {where} ORDER BY o.order_id DESC LIMIT %s OFFSET %s",
+                self._projection() + f" WHERE {where} ORDER BY {ordering} LIMIT %s OFFSET %s",
                 [*params, limit, offset],
             )
             return [dict(row) for row in cur.fetchall()], total

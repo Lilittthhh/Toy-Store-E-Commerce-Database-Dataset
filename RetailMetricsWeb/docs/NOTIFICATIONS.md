@@ -60,14 +60,15 @@ then set `SMTP_LIVE_SEND_ENABLED=true`. Gmail commonly requires an app
 password rather than the normal account password. The Admin test endpoint
 requires `confirm_live=true` for each live email send.
 
-Transactional SMS uses Brevo. Configure `SMS_PROVIDER=brevo`, `BREVO_API_KEY`,
-and `BREVO_SMS_SENDER` in the ignored local `.env`. A real SMS requires both
-`NOTIFICATION_MODE=live` and `BREVO_SMS_LIVE_SEND_ENABLED=true`; otherwise SMS
-is simulated, independently of Gmail SMTP. Only Philippine mobile numbers in
-`09...`, `639...`, or `+639...` format are accepted and sent as `+639...`.
-Before enabling live delivery, confirm the sender is approved by Brevo;
-its documented alphanumeric sender limit is 11 characters, so the suggested
-`RetailMetrics` label may need a shorter approved equivalent.
+Transactional SMS can use Android SMS Gateway Cloud Server mode. Configure
+`SMS_PROVIDER=android_gateway`, `SMS_GATEWAY_URL`, `SMS_GATEWAY_USERNAME`, and
+`SMS_GATEWAY_PASSWORD` in the ignored local `.env`. A real SMS requires both
+`NOTIFICATION_MODE=live` and `SMS_GATEWAY_LIVE_SEND_ENABLED=true`; otherwise
+SMS is simulated, independently of Gmail SMTP. The configured URL must be
+HTTPS on `api.sms-gate.app` at the message endpoint. Only Philippine mobile
+numbers in `09...`, `639...`, or `+639...` format are accepted and sent as
+`+639...`. Brevo remains available as an optional alternative, gated by
+`BREVO_SMS_LIVE_SEND_ENABLED`; do not enable both providers for one run.
 Automated tests force all live gates off and use in-memory HTTP transports.
 
 The Admin test action is intentionally outside the business outbox because it

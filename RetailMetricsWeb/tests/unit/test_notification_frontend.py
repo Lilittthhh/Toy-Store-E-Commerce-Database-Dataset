@@ -71,3 +71,17 @@ def test_brevo_live_button_requires_only_sms_readiness_and_confirmation():
     assert not send_disabled(ready_config(**{**config, "smtp_password_configured": False}),
                              "sms", "09171234567", True)
     assert not valid_sms_destination("+14155550123")
+
+
+def test_android_gateway_live_readiness_is_independent_of_email_and_brevo():
+    config = ready_config(
+        sms_provider="android_gateway", sms_delivery_mode="android_gateway",
+        sms_live_enabled=True, sms_gateway_url_configured=True,
+        sms_gateway_username_configured=True, sms_gateway_password_configured=True,
+        smtp_password_configured=False, brevo_api_key_configured=False,
+    )
+    assert channel_ready(config, "sms")
+    assert not send_disabled(config, "sms", "09171234567", True)
+    assert send_disabled(config, "sms", "09171234567", False)
+    assert send_disabled(ready_config(**{**config, "sms_gateway_password_configured": False}),
+                         "sms", "09171234567", True)

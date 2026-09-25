@@ -8,4 +8,5 @@ def pytest_configure():
     os.environ["SMTP_LIVE_SEND_ENABLED"] = "false"
     os.environ["SMS_LIVE_SEND_ENABLED"] = "false"
     os.environ["BREVO_SMS_LIVE_SEND_ENABLED"] = "false"
+    os.environ["SMS_GATEWAY_LIVE_SEND_ENABLED"] = "false"
     os.environ["INFOBIP_LIVE_SEND_ENABLED"] = "false"

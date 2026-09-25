@@ -18,8 +18,10 @@ class OrderWorkflowService:
         self.repository = repository
         self.outbox = outbox
 
-    def list_customer_orders(self, status_filter: str | None, limit: int, offset: int):
-        return self.repository.list_customer_orders(status_filter, limit, offset)
+    def list_customer_orders(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ):
+        return self.repository.list_customer_orders(status_filter, limit, offset, actionable_only)
 
     def transition(self, order_id: int, row_version: int, action: str, actor: AppUser):
         try:

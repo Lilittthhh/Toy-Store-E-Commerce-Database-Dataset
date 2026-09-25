@@ -24,6 +24,7 @@ def customer_sign_in(token: str, customer: dict[str, Any], expires_in: int = 180
     st.session_state.customer_access_token = token
     st.session_state.current_customer = customer
     st.session_state.active_portal = "customer"
+    st.session_state.pop("customer_cart_count", None)
     persist_customer_browser_session(token, expires_in)
 
 
@@ -32,3 +33,4 @@ def customer_sign_out() -> None:
     st.session_state.customer_access_token = None
     st.session_state.current_customer = None
     st.session_state.active_portal = None
+    st.session_state.pop("customer_cart_count", None)

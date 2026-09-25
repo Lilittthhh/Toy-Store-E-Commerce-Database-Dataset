@@ -48,8 +48,10 @@ class RefundWorkflowService:
             raise HTTPException(status_code=404, detail="Refund request not found.")
         return result
 
-    def list_staff_requests(self, status_filter: str | None, limit: int, offset: int):
-        return self.repository.list_staff_requests(status_filter, limit, offset)
+    def list_staff_requests(
+        self, status_filter: str | None, limit: int, offset: int, actionable_only: bool = False
+    ):
+        return self.repository.list_staff_requests(status_filter, limit, offset, actionable_only)
 
     def approve(self, request_id: int, row_version: int, reviewer: AppUser, note: str | None):
         return self._call(self.repository.approve, request_id, row_version, reviewer.app_user_id, note)

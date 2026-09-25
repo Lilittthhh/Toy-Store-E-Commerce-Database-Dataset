@@ -72,18 +72,18 @@ def test_only_admin_sees_user_management() -> None:
 
 def test_custom_navigation_contains_only_user_facing_routes() -> None:
     assert navigation_for_role("admin") == (
-        "Dashboard", "User Management", "Customer Accounts", "Audit Trail", "Notification Test", "Customers", "Products",
-        "Storefront Catalog", "Orders", "Refund Requests", "Refunds", "Website Traffic",
+        "Dashboard", "Orders", "Refund Requests", "Products", "Storefront Catalog", "Customers",
+        "User Management", "Customer Accounts", "Audit Trail", "Notification Test", "Website Traffic",
         "Analytics Dashboard", "Business Reports", "Project Evidence", "My Account", "Logout",
     )
     assert navigation_for_role("analyst")[0] == "Analytics Dashboard"
     assert "Customers" in navigation_for_role("operations_staff")
     assert navigation_for_role("operations_staff") == (
-        "Dashboard", "Customers", "Orders", "Refund Requests", "Refunds",
+        "Dashboard", "Customers", "Orders", "Refund Requests",
         "Products", "Storefront Catalog", "My Account", "Logout",
     )
     assert navigation_for_role("analyst") == (
-        "Analytics Dashboard", "Customers", "Products", "Orders", "Refunds",
+        "Analytics Dashboard", "Customers", "Products", "Orders", "Refund Requests",
         "Website Traffic", "Business Reports", "My Account", "Logout",
     )
     assert "Project Evidence" in navigation_for_role("admin")

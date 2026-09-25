@@ -3,11 +3,12 @@ from __future__ import annotations
 import streamlit as st
 
 from frontend.api_client import APIClient, APIError
-from frontend.ui import data_page_header, format_datetime, pagination_controls, show_api_error
+from frontend.ui import data_page_header, detail_summary, format_datetime, pagination_controls, section_label, show_api_error
 
 
 def render(client: APIClient) -> None:
     data_page_header("Customer Accounts", "Review safe customer details and manage account access.", "customers")
+    section_label("Directory filters")
     filters = st.columns([2, 1, 1])
     search = filters[0].text_input("Search email or name")
     status = filters[1].selectbox("Status", ["all", "active", "inactive"])
@@ -34,9 +35,18 @@ def render(client: APIClient) -> None:
         pagination_controls("customers", result["total"], limit)
         if not rows:
             return
-        st.divider()
+        section_label("Selected customer")
         selected_id = st.selectbox("Customer account", [row["customer_account_id"] for row in rows], format_func=lambda value: next(f"{row['first_name']} {row['last_name']} · {row['email']}" for row in rows if row["customer_account_id"] == value))
         selected = next(row for row in rows if row["customer_account_id"] == selected_id)
+        detail_summary(
+            f"{selected['first_name']} {selected['last_name']}",
+            selected["email"],
+            (
+                ("Account", "Active" if selected["is_active"] else "Inactive"),
+                ("Security", f"Locked until {format_datetime(selected['locked_until'])}" if selected.get("locked_until") else "Unlocked"),
+                ("Last login", format_datetime(selected.get("last_login_at"))),
+            ),
+        )
         left, right = st.columns(2)
         action = "Deactivate" if selected["is_active"] else "Reactivate"
         if left.button(action, type="primary", use_container_width=True):

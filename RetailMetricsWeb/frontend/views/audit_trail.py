@@ -4,12 +4,13 @@ from __future__ import annotations
 import streamlit as st
 
 from frontend.api_client import APIClient, APIError
-from frontend.ui import data_page_header, format_datetime, pagination_controls, show_api_error
+from frontend.ui import data_page_header, detail_summary, format_datetime, pagination_controls, section_label, show_api_error
 
 
 def render(client: APIClient) -> None:
     data_page_header("Audit Trail", "Review security and business changes. Entries cannot be edited or removed.", "audit_trail")
-    with st.container(border=True):
+    section_label("Event filters")
+    with st.container():
         first = st.columns([2, 1, 1, 1])
         search = first[0].text_input("Search action or entity", key="audit_search")
         role = first[1].selectbox("Actor role", ["All", "admin", "operations_staff", "analyst", "customer"], key="audit_role")
@@ -50,15 +51,21 @@ def render(client: APIClient) -> None:
             "Entity": row.get("entity_type") or "—",
             "Entity ID": row.get("entity_id") or "—",
             "Description": row.get("description") or "—",
-        } for row in rows], use_container_width=True, hide_index=True)
+        } for row in rows], use_container_width=True, hide_index=True, height=min(470, 38 + len(rows) * 32))
         selected = st.selectbox("Inspect event", [None, *[row["audit_log_id"] for row in rows]],
                                 format_func=lambda value: "Select an event" if value is None else f"Event #{value}")
         if selected is not None:
             row = next(row for row in rows if row["audit_log_id"] == selected)
+            section_label("Event inspection")
             with st.container(border=True):
-                st.subheader(f"Event #{selected}")
-                st.write(f"{format_datetime(row['created_at'])} · {row['action']} · {row.get('actor_display') or 'Anonymous / System'}")
-                st.write(f"Entity: {row.get('entity_type') or '—'} #{row.get('entity_id') or '—'}")
+                detail_summary(
+                    f"Event #{selected}",
+                    row.get("description") or "Recorded system interaction",
+                    (("Date / Time", format_datetime(row["created_at"])),
+                     ("Actor", row.get("actor_display") or "Anonymous / System"),
+                     ("Action", row["action"].replace("_", " ").title()),
+                     ("Entity", f"{row.get('entity_type') or '—'} #{row.get('entity_id') or '—'}")),
+                )
                 if row.get("old_values"):
                     st.caption("Previous safe state")
                     st.json(row["old_values"])

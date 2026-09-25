@@ -31,17 +31,23 @@ def render_login(client: APIClient) -> None:
 
 
 def render_register(client: APIClient) -> None:
-    content = _header("Create your customer account", "Secure access to the RetailMetrics storefront and customer services")
+    content = _header("Create your account", "Save your bag, check out, and follow every order.")
     with content:
-        st.info("Create your profile, then sign in to browse the storefront, manage saved resources, and check out securely.")
+        st.caption("All fields are required except phone. Use an email address you can access.")
         with st.form("customer_register_form"):
-            first_name = st.text_input("First name")
-            last_name = st.text_input("Last name")
-            phone = st.text_input("Phone (optional)")
+            first, last = st.columns(2)
+            first_name = first.text_input("First name")
+            last_name = last.text_input("Last name")
             email = st.text_input("Email")
-            password = st.text_input("Password", type="password", help="At least 12 characters with uppercase, lowercase, number, and symbol.")
-            confirmation = st.text_input("Confirm password", type="password")
-            submitted = st.form_submit_button("Create customer account", type="primary", use_container_width=True)
+            phone = st.text_input("Phone (optional)")
+            password_col, confirm_col = st.columns(2)
+            password = password_col.text_input(
+                "Password", type="password",
+                help="At least 12 characters with uppercase, lowercase, number, and symbol.",
+            )
+            confirmation = confirm_col.text_input("Confirm password", type="password")
+            st.caption("Use 12+ characters with uppercase, lowercase, a number, and a symbol.")
+            submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
         if submitted:
             if password != confirmation:
                 st.error("Passwords do not match.")

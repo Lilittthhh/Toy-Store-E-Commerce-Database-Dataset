@@ -17,8 +17,10 @@ OPERATIONS_ROLES = (Role.ADMIN, Role.OPERATIONS_STAFF)
 
 
 @router.get("/order-workflow/orders", response_model=StaffCustomerOrderPage)
-def list_customer_orders(status_filter: CustomerOrderWorkflowStatus | None = Query(default=None), limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), _: AppUser = Depends(require_roles(*ALL_STAFF_ROLES)), service: OrderWorkflowService = Depends(get_order_workflow_service)):
-    items, total = service.list_customer_orders(status_filter.value if status_filter else None, limit, offset)
+def list_customer_orders(status_filter: CustomerOrderWorkflowStatus | None = Query(default=None), actionable_only: bool = Query(default=False), limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), _: AppUser = Depends(require_roles(*ALL_STAFF_ROLES)), service: OrderWorkflowService = Depends(get_order_workflow_service)):
+    items, total = service.list_customer_orders(
+        status_filter.value if status_filter else None, limit, offset, actionable_only
+    )
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 

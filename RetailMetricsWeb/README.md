@@ -83,6 +83,12 @@ IPv4 address. `RUN_WEB.bat` automatically replaces a missing, placeholder, or
 loopback value with the detected LAN address. Streamlit never reads the
 PostgreSQL credentials or connects to PostgreSQL directly.
 
+`FRONTEND_BASE_URL` is the public Streamlit address embedded in password-reset
+emails. It defaults to `http://localhost:8501`. For another device on the local
+network, set it to the same reachable `http://HOST_IP:8501` address used to open
+the storefront. Reset links include a one-time token and account domain and
+open the dedicated Reset Password page.
+
 ## Exact deployment order
 
 1. Back up the `retailmetrics` database using the normal local PostgreSQL backup
@@ -404,11 +410,45 @@ accounts are never physically deleted.
 
 ## Streamlit pages and roles
 
-The entry screen separates **Customer Portal** from **Staff Portal**. The
-customer area includes Customer Login, Customer Register,
-Forgot/Reset Password, My Account with Profile, Addresses, Payment Methods and
-Security sections, Home/Shop, Cart, Checkout, My Orders, and Logout. Customer and staff tokens use separate
-Streamlit state, server-side opaque-handle stores, and browser cookie names.
+The public storefront is the entry screen. Anonymous visitors can search and
+browse the collection, add products to a guest bag, read store benefits and
+reviews, and return to shopping without creating an account. Checkout opens the
+unified authentication experience; the header also provides an explicit
+**Sign in** action for customers or staff who want to open their workspace.
+
+The sign-in form accepts a staff username/email or a customer email and uses a
+single generic failure message. Registration is a dedicated, two-column
+customer form. The Forgot Password page only requests an email address and its
+primary action is **Reset Password**. A branded email supplies a time-limited
+button/link that opens a separate Reset Password page; the browser flow does
+not ask the user to copy a reset code. The sign-in and registration forms use
+Streamlit's single native password visibility control and clearly outlined
+fields.
+
+The authenticated customer area includes Home/Shop, Cart, Checkout, My Orders,
+and My Account with Profile, Addresses, Payment Methods, and Security sections.
+Customer and staff tokens use separate Streamlit state, server-side
+opaque-handle stores, and browser cookie names.
+
+## Public storefront and product artwork
+
+The public landing page includes responsive desktop/mobile navigation, hero and
+benefit content, product search, shopper reviews, a guest shopping bag, and a
+checkout sign-in boundary. Guest bag items are transferred into the persistent
+customer cart after a successful customer login.
+
+The original four toy products use bundled generated WebP artwork:
+
+```text
+frontend/assets/products/original-mr-fuzzy.webp
+frontend/assets/products/forever-love-bear.webp
+frontend/assets/products/birthday-sugar-panda.webp
+frontend/assets/products/hudson-river-mini-bear.webp
+```
+
+`frontend/product_assets.py` maps canonical product names to these local assets.
+The catalog-provided `image_url` is used for other products when available, and
+the UI retains a built-in fallback visual when neither source exists.
 
 ## Customer addresses and simulated payment methods
 
@@ -523,23 +563,37 @@ the operational order status. Cumulative refunds covering the full order set
 both payment and order to `refunded`. Customers never insert actual refund rows
 directly, and customer-origin refunds remain outside canonical analytical views.
 
-The final staff experience separates resource CRUD from transaction lifecycles:
+The final staff experience separates resource CRUD from transaction lifecycles
+and keeps each workflow on one page:
 
 - Admin sees Dashboard, User Management, Customer Accounts, Customers, Products,
-  Storefront Catalog, Orders, Refund Requests, Refunds, Website Traffic,
+  Storefront Catalog, Orders, Refund Requests, Website Traffic,
   Analytics Dashboard, Business Reports, Project Evidence, My Account, and
   Logout.
-- Operations Staff sees Dashboard, Customers, Orders, Refund Requests, Refunds,
+- Operations Staff sees Dashboard, Customers, Orders, Refund Requests,
   read-only Products and Storefront Catalog, My Account, and Logout. Operations
   does not receive generic transaction CRUD controls.
 - Analyst sees read-only Analytics Dashboard, Customers, Products, Orders,
-  Refunds, Website Traffic, Business Reports, My Account, and Logout.
+  Refund Requests, Website Traffic, Business Reports, My Account, and Logout.
 
 Order Items remain available through protected API/read projections and within
 customer order details, but are not a standalone normal staff navigation item.
 Customers create them only as part of atomic checkout. Actual Refunds are
-read-only evidence in the Refunds page and are created only when authorized
-staff processes an approved Refund Request.
+read-only evidence at the bottom of the Refund Requests page and are created
+only when authorized staff processes an approved Refund Request.
+
+The Orders page puts the actionable queue above all tables. It retrieves every
+pending or processing customer order, orders them by `created_at` and ID from
+oldest to newest, and selects the oldest available order by default. The full
+queue remains visible so staff can choose another outstanding order. Customer
+order history and imported order records are placed in the collapsed **All
+order records** section at the bottom.
+
+The Refund Requests page follows the same oldest-first queue design for all
+pending and approved requests. Approve, reject, and process controls appear
+before historical tables. Completed request history and the complete refund
+record table are contained in the collapsed **All refund history and records**
+section at the bottom.
 
 Tables distinguish historical, application-created, and customer-created
 records where applicable. Historical rows never appear in permitted mutation
@@ -648,10 +702,11 @@ The Staff Portal now opens a distinct workspace for each role:
 - **Analyst** opens directly to the read-only Analytics Dashboard and Reports,
   with deidentified customer intelligence and no mutation controls.
 
-The Customers page deliberately separates **Historical Customers**
-from **Registered Customers**. Historical shoppers are identified only as
-`Historical Shopper #<dataset user ID>` and are derived from canonical
-activity; no name or email is invented. Registered-customer output is projected by the API so
+The Customers page presents **Registered customers** first. Earlier imported
+customer activity remains part of this same page and is hidden initially inside
+the **Earlier customer activity** expander. Earlier shoppers are identified as
+`Customer #<dataset user ID>` and are derived from canonical activity; no name
+or email is invented. Registered-customer output is projected by the API so
 Analyst responses omit email, name, phone, lock state, and security data.
 
 Dashboard SQL lives in the dedicated read-only `AnalyticsRepository` and
@@ -729,9 +784,11 @@ Automated tests force this mode and disable the live-send gate.
 Live email uses Gmail SMTP independently from SMS. Configure the ignored local
 `.env` with `NOTIFICATION_MODE=live`, `EMAIL_PROVIDER=smtp`, the `SMTP_*`
 settings documented in `.env.example`, and `SMTP_LIVE_SEND_ENABLED=true` only
-when an intentional send is required. Brevo SMS remains simulated by default;
-real delivery requires `NOTIFICATION_MODE=live`, `SMS_PROVIDER=brevo`, and
-`BREVO_SMS_LIVE_SEND_ENABLED=true` with a configured key and sender.
+when an intentional send is required. Android SMS Gateway remains simulated
+by default; real delivery requires `NOTIFICATION_MODE=live`,
+`SMS_PROVIDER=android_gateway`, `SMS_GATEWAY_LIVE_SEND_ENABLED=true`, and the
+gateway URL/username/password in the ignored local `.env`. Brevo remains an
+optional alternative.
 See [notification operations](docs/NOTIFICATIONS.md)
 for the channel-specific safety gates.
 

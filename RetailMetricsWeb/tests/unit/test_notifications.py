@@ -290,9 +290,9 @@ def test_admin_config_readiness_returns_booleans_only():
     assert result["mode"] == "live"
     assert result["email_provider"] == "smtp" and result["email_live_enabled"]
     assert result["smtp_host_configured"] and result["smtp_password_configured"]
-    assert result["sms_provider"] == "brevo" and not result["sms_live_enabled"]
+    assert result["sms_provider"] == "android_gateway" and not result["sms_live_enabled"]
     assert result["sms_delivery_mode"] == "mock"
-    assert not result["brevo_api_key_configured"]
+    assert not result["sms_gateway_username_configured"]
     assert "unit-only-password" not in str(result)
 
 

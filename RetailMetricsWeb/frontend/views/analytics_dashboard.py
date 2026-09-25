@@ -61,20 +61,20 @@ def render(client: APIClient) -> None:
         if time_frame.empty:
             st.info("No orders are available for this scope.")
         else:
-            st.line_chart(time_frame.set_index("period")[["revenue"]], color="#0f766e", height=285)
+            st.line_chart(time_frame.set_index("period")[["revenue"]], color="#e6533d", height=285)
     with right:
         section_label("Trend")
         st.subheader("Orders over time")
         if time_frame.empty:
             st.info("No orders are available for this scope.")
         else:
-            st.bar_chart(time_frame.set_index("period")[["orders"]], color="#274c77", height=285)
+            st.bar_chart(time_frame.set_index("period")[["orders"]], color="#3b8bd4", height=285)
     products = pd.DataFrame(report["products"])
     st.subheader("Product performance")
     if products.empty:
         st.info("No product performance is available for this scope.")
     else:
-        st.bar_chart(products.set_index("product_name")[["revenue", "net_revenue"]], color=["#274c77", "#0f766e"], height=320)
+        st.bar_chart(products.set_index("product_name")[["revenue", "net_revenue"]], color=["#3b8bd4", "#f0a830"], height=320)
         if role == "analyst":
             display_rows([{
                 "Product": row["product_name"],
@@ -103,7 +103,7 @@ def render(client: APIClient) -> None:
                 st.dataframe(pd.DataFrame(report["traffic_sources"]), use_container_width=True, hide_index=True)
         with devices:
             st.subheader("Device breakdown")
-            st.bar_chart(pd.DataFrame(report["devices"]).set_index("device"), color="#627d98", height=285)
+            st.bar_chart(pd.DataFrame(report["devices"]).set_index("device"), color="#8b6fc0", height=285)
     if report["refund_trend"]:
         st.subheader("Refund trend")
-        st.line_chart(pd.DataFrame(report["refund_trend"]).set_index("period")[["amount"]], color="#c05640", height=250)
+        st.line_chart(pd.DataFrame(report["refund_trend"]).set_index("period")[["amount"]], color="#e6533d", height=250)

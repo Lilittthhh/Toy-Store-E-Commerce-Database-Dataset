@@ -106,7 +106,8 @@ class CustomerAuthService:
         self.repository.store_reset_token(account.customer_account_id, token_hash, self.settings.auth_reset_token_minutes * 60)
         if self.notification_sink:
             self.notification_sink(password_reset_message(
-                account.email, raw_token, self.settings.auth_reset_token_minutes, "customer"
+                account.email, raw_token, self.settings.auth_reset_token_minutes, "customer",
+                self.settings.frontend_base_url,
             ))
         return raw_token if reset_token_may_be_exposed(self.settings) else None
 

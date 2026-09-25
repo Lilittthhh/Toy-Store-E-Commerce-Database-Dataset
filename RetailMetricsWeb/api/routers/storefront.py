@@ -15,6 +15,17 @@ from services.audit import set_entity_id
 router = APIRouter(tags=["Storefront and cart"])
 
 
+@router.get("/store/products", response_model=list[StorefrontProductResponse])
+def list_public_store_products(search: str | None = Query(default=None, max_length=100), service: StorefrontService = Depends(get_storefront_service)):
+    """Public, read-only catalog used by the storefront landing page."""
+    return [StorefrontProductResponse.from_model(value) for value in service.list_store_products(search)]
+
+
+@router.get("/store/products/{product_id}", response_model=StorefrontProductResponse)
+def get_public_store_product(product_id: int = Path(gt=0), service: StorefrontService = Depends(get_storefront_service)):
+    return StorefrontProductResponse.from_model(service.get_store_product(product_id))
+
+
 @router.get("/admin/catalog", response_model=list[AdminCatalogResponse])
 def list_catalog(_: AppUser = Depends(get_current_user), service: StorefrontService = Depends(get_storefront_service)):
     return [AdminCatalogResponse.from_model(value) for value in service.list_catalog()]

@@ -137,7 +137,8 @@ class AuthService:
         )
         if self.notification_sink:
             self.notification_sink(password_reset_message(
-                user.email, raw_token, self.settings.auth_reset_token_minutes, "staff"
+                user.email, raw_token, self.settings.auth_reset_token_minutes, "staff",
+                self.settings.frontend_base_url,
             ))
         return raw_token if reset_token_may_be_exposed(self.settings) else None
 

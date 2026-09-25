@@ -6,6 +6,7 @@ import streamlit as st
 
 from frontend.api_client import APIClient, APIError
 from frontend.navigation import request_customer_navigation
+from frontend.product_assets import product_image_path
 from frontend.ui import data_page_header, format_datetime, format_money, format_status, page_header, show_api_error, status_badge
 
 
@@ -14,11 +15,16 @@ def _money(value) -> str:
 
 
 def _product_visual(product: dict, height: int = 170) -> None:
+    bundled_image = product_image_path(product["product_name"])
+    if bundled_image:
+        st.image(str(bundled_image), use_container_width=True)
+        return
     if product.get("image_url"):
         st.image(product["image_url"], use_container_width=True)
     else:
         st.markdown(
-            f'<div class="rm-product-visual" style="height:{height}px"><span>&#9635;</span><small>Product image</small></div>',
+            f'<div class="rm-product-visual" style="height:{height}px"><span class="rm-product-fallback-mark">RM</span>'
+            '<strong>Toy Store selection</strong><small>RetailMetrics product</small></div>',
             unsafe_allow_html=True,
         )
 
@@ -30,37 +36,83 @@ def _add_form(client: APIClient, product: dict, key: str) -> None:
     if add:
         try:
             client.post("/customer/cart/items", {"product_id": product["product_id"], "quantity": int(quantity)})
+            st.session_state.customer_cart_count = int(st.session_state.get("customer_cart_count", 0)) + int(quantity)
             st.success(f"{product['product_name']} added to your cart.")
         except APIError as exc:
             show_api_error(exc)
 
 
+def _brand_story_section() -> None:
+    st.markdown(
+        """
+        <div class="rm-brand-story-kicker">From our store to your door</div>
+        <section class="rm-brand-story">
+          <article>
+            <h3>01 · Find your favorite</h3>
+            <p>
+              Explore available toys, take a closer look, and add a little happiness to your cart.
+            </p>
+          </article>
+          <article>
+            <h3>02 · Make yourself at home</h3>
+            <p>
+              Save an address and choose a demo payment method. Review your items before placing your order.
+            </p>
+          </article>
+          <article>
+            <h3>03 · Follow every step</h3>
+            <p>
+              Visit My Orders for progress updates, confirm your delivery, or request an eligible refund.
+            </p>
+          </article>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _return_to_products() -> None:
+    st.session_state.pop("store_product_detail", None)
+
+
+def _render_shop_hero(customer: dict) -> None:
+    st.markdown(
+        f"""
+        <div class="rm-shop-hero">
+          <div class="rm-hero-copy">
+            <div class="rm-shop-kicker">Welcome back, {escape(customer['first_name'])}</div>
+            <h1>Small toys.<br>Big adventures.</h1>
+            <p>
+              Meet your next favorite playtime companion. Explore our collection
+              and bring a little more joy to the everyday.
+            </p>
+            <a href="#featured-products" class="rm-hero-cta">Explore the collection →</a>
+          </div>
+          <div class="rm-hero-visual" aria-hidden="true">
+            <span class="rm-hero-block rm-hero-block-one">RM</span>
+            <span class="rm-hero-block rm-hero-block-two">TOY</span>
+            <span class="rm-hero-block rm-hero-block-three">JOY</span>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_shop(client: APIClient, customer: dict) -> None:
+    st.markdown('<span class="rm-store-toolbar-marker"></span>', unsafe_allow_html=True)
     search = st.text_input(
         "Search by product name",
         placeholder="Search toys, bears, and more…",
         key="store_search",
         label_visibility="collapsed",
-    )
-    st.markdown(
-        f"""
-        <div class="rm-shop-hero">
-          <div class="rm-shop-kicker">Hello, {customer['first_name']}</div>
-          <h2>Toys for Brighter Days</h2>
-          <p>Discover cheerful toys for every occasion and choose something delightful.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        on_change=_return_to_products,
+    ).strip()
     try:
         products = client.get("/customer/store/products", {"search": search} if search else None)
     except APIError as exc:
         show_api_error(exc)
         return
-    if not products:
-        st.info("No available toys match your search. Try a different product name.")
-        return
-
     selected_id = st.session_state.get("store_product_detail")
     if selected_id:
         try:
@@ -95,10 +147,19 @@ def render_shop(client: APIClient, customer: dict) -> None:
             )
             return
 
+    _render_shop_hero(customer)
+    product_label = "product" if len(products) == 1 else "products"
     st.markdown(
-        '<div class="rm-section-heading"><strong>Featured Products</strong><span>Toys ready to explore</span></div>',
+        f'<div class="rm-section-heading" id="featured-products"><strong>{"Search results" if search else "The toy collection"}</strong><span>{len(products)} available {product_label}</span></div>',
         unsafe_allow_html=True,
     )
+    if not products:
+        if search:
+            st.info("No toys match your search. Try another name or clear the search to see the collection.")
+        else:
+            st.info("Our shelves are getting ready. Check back soon for available toys.")
+        return
+
     columns = st.columns(4, gap="medium")
     for index, product in enumerate(products):
         with columns[index % 4]:
@@ -106,14 +167,20 @@ def render_shop(client: APIClient, customer: dict) -> None:
                 st.markdown('<span class="rm-product-card-marker"></span>', unsafe_allow_html=True)
                 _product_visual(product, 96)
                 st.subheader(product["product_name"])
-                st.markdown(f'<div class="rm-price">{_money(product["current_price_usd"])}</div>', unsafe_allow_html=True)
+                st.markdown(
+                    f'<div class="rm-product-price-row"><span class="rm-price">{_money(product["current_price_usd"])}</span>'
+                    '<span class="rm-product-stock">In stock</span></div>',
+                    unsafe_allow_html=True,
+                )
                 description = product["description"] or "More product details are coming soon."
                 st.markdown(f'<div class="rm-product-description">{escape(description)}</div>', unsafe_allow_html=True)
-                if st.button("View Details", key=f"view_product_{product['product_id']}", use_container_width=True):
+                details_action, cart_action = st.columns([1, 1.12], gap="small")
+                if details_action.button("View Details", key=f"view_product_{product['product_id']}", use_container_width=True):
                     st.session_state.store_product_detail = product["product_id"]
                     st.rerun()
-                with st.popover("Add to Cart", use_container_width=True):
+                with cart_action.popover("Add to Cart", use_container_width=True):
                     _add_form(client, product, f"card_add_{product['product_id']}")
+    _brand_story_section()
 
 
 def render_cart(client: APIClient) -> None:
@@ -159,6 +226,7 @@ def render_cart(client: APIClient) -> None:
                     if save:
                         try:
                             client.put(f"/customer/cart/items/{item['cart_item_id']}", {"quantity": int(quantity), "row_version": item["row_version"]})
+                            st.session_state.pop("customer_cart_count", None)
                             st.success("Quantity updated.")
                             st.rerun()
                         except APIError as exc:
@@ -168,6 +236,7 @@ def render_cart(client: APIClient) -> None:
                     if st.button("Remove", key=f"cart_remove_{item['cart_item_id']}", use_container_width=True):
                         try:
                             client.delete(f"/customer/cart/items/{item['cart_item_id']}", {"row_version": item["row_version"]})
+                            st.session_state.pop("customer_cart_count", None)
                             st.success("Item removed.")
                             st.rerun()
                         except APIError as exc:
@@ -321,6 +390,7 @@ def render_checkout(client: APIClient) -> None:
                         "address_id": address_id, "payment_method_id": payment_id,
                         "cart_row_version": cart["row_version"],
                     })
+                    st.session_state.customer_cart_count = 0
                     st.session_state.checkout_confirmation = order
                     st.rerun()
                 except APIError as exc:
@@ -352,6 +422,25 @@ def _delivery_confirmation_control(client: APIClient, order: dict, location: str
         st.rerun()
 
 
+def _order_timeline(status: str) -> None:
+    stages = (("pending", "Pending"), ("processing", "Processing"),
+              ("ready_shipped", "Ready / Shipped"), ("delivered", "Delivered"))
+    if status in {"cancelled", "refunded"}:
+        st.markdown(
+            f'<div class="rm-order-final-state rm-order-final-{status}"><strong>{escape(format_status(status))}</strong>'
+            '<span>This order has reached a final state.</span></div>',
+            unsafe_allow_html=True,
+        )
+        return
+    current_index = next((index for index, (value, _) in enumerate(stages) if value == status), 0)
+    items = "".join(
+        f'<div class="rm-timeline-step {"is-complete" if index <= current_index else ""}">'
+        f'<span>{index + 1}</span><strong>{label}</strong></div>'
+        for index, (_, label) in enumerate(stages)
+    )
+    st.markdown(f'<div class="rm-order-timeline">{items}</div>', unsafe_allow_html=True)
+
+
 def _render_order_detail(client: APIClient, order_id: int) -> None:
     try:
         order = client.get(f"/customer/orders/{order_id}")
@@ -362,6 +451,7 @@ def _render_order_detail(client: APIClient, order_id: int) -> None:
         st.session_state.pop("order_detail_id", None)
         st.rerun()
     page_header("Order Details", f"Order #{order['order_id']} · Placed {format_datetime(order['created_at'])}")
+    _order_timeline(order["order_status"])
     with st.container(border=True):
         st.markdown('<span class="rm-order-card-marker"></span>', unsafe_allow_html=True)
         st.caption("Order Summary")

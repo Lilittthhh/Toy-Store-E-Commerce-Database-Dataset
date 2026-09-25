@@ -190,6 +190,53 @@ class BrevoSmsProvider:
             raise ProviderFailure("SMS_PROVIDER_REQUEST_FAILED") from None
 
 
+class AndroidSmsGatewayProvider:
+    """Cloud-mode Android gateway transport; errors never expose request details."""
+
+    def __init__(self, settings: Settings, client: httpx.Client | None = None) -> None:
+        self.settings = settings
+        self.client = client
+
+    def send_sms(self, message: Message) -> DeliveryResult:
+        if self.settings.notification_mode != "live" or not self.settings.sms_gateway_live_send_enabled:
+            raise ProviderFailure("SMS_LIVE_SEND_DISABLED")
+        if not self.settings.sms_gateway_username or not self.settings.sms_gateway_password:
+            raise ProviderFailure("SMS_PROVIDER_NOT_CONFIGURED")
+        if not gateway_url_ready(self.settings.sms_gateway_url):
+            raise ProviderFailure("INVALID_SMS_GATEWAY_URL")
+        recipient = normalize_ph_mobile(message.recipient)
+        if not recipient:
+            raise ProviderFailure("INVALID_SMS_RECIPIENT")
+        payload = {"textMessage": {"text": message.body}, "phoneNumbers": [recipient]}
+        try:
+            auth = httpx.BasicAuth(self.settings.sms_gateway_username, self.settings.sms_gateway_password)
+            if self.client is None:
+                with httpx.Client(timeout=httpx.Timeout(10.0, connect=5.0)) as client:
+                    response = client.post(self.settings.sms_gateway_url, auth=auth, json=payload)
+            else:
+                response = self.client.post(self.settings.sms_gateway_url, auth=auth, json=payload)
+            response.raise_for_status()
+            data = response.json()
+            identifier = (data.get("id") or data.get("messageId")) if isinstance(data, dict) else None
+            return DeliveryResult(str(identifier or "accepted"))
+        except (httpx.HTTPError, ValueError, TypeError, UnicodeError):
+            raise ProviderFailure("SMS_PROVIDER_REQUEST_FAILED") from None
+
+
+def gateway_url_ready(value: str) -> bool:
+    """Never transmit Basic credentials to an unexpected host or URL variant."""
+    try:
+        url = httpx.URL(value)
+        return bool(
+            url.scheme == "https" and url.host == "api.sms-gate.app"
+            and url.path in {"/3rdparty/v1/message", "/3rdparty/v1/messages"}
+            and not url.username and not url.password and not url.query and not url.fragment
+            and url.port in {None, 443}
+        )
+    except (ValueError, TypeError):
+        return False
+
+
 class RoutedNotificationProvider:
     """Route channels independently while retaining one outbox provider interface."""
 
@@ -207,6 +254,8 @@ class RoutedNotificationProvider:
     def send_sms(self, message: Message) -> DeliveryResult:
         if delivery_mode(self.settings, "sms") == "mock":
             return self.mock.send_sms(message)
+        if self.settings.sms_provider == "android_gateway":
+            return AndroidSmsGatewayProvider(self.settings).send_sms(message)
         return BrevoSmsProvider(self.settings).send_sms(message)
 
 
@@ -215,9 +264,13 @@ def delivery_mode(settings: Settings, channel: str) -> str:
         return "mock"
     if channel == "email":
         return settings.email_provider
-    return "brevo" if (settings.notification_mode == "live"
-                       and settings.sms_provider == "brevo"
-                       and settings.brevo_sms_live_send_enabled) else "mock"
+    if settings.notification_mode != "live":
+        return "mock"
+    if settings.sms_provider == "brevo" and settings.brevo_sms_live_send_enabled:
+        return "brevo"
+    if settings.sms_provider == "android_gateway" and settings.sms_gateway_live_send_enabled:
+        return "android_gateway"
+    return "mock"
 
 
 def provider_for(settings: Settings) -> NotificationProvider:

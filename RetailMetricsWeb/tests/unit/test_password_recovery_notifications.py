@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import html
 import re
+from urllib.parse import parse_qs, urlparse
 from types import SimpleNamespace
 
 from fastapi import HTTPException
@@ -45,9 +46,10 @@ def live_settings() -> Settings:
 
 
 def token_from_message(message) -> str:
-    match = re.search(r'padding:14px">([^<]+)</div>', message.body)
+    match = re.search(r'href="([^"]+reset_token=[^"]+)"', message.body)
     assert match
-    return html.unescape(match.group(1))
+    reset_url = html.unescape(match.group(1))
+    return parse_qs(urlparse(reset_url).query)["reset_token"][0]
 
 
 class FakeSmtp:
@@ -88,8 +90,10 @@ def test_registered_customer_reset_is_queued_emailed_and_token_still_resets_pass
     assert len(queued) == 1
     message = queued[0]
     assert message.event_type == "customer_password_reset"
-    assert message.subject == "RetailMetrics Password Reset"
-    assert "temporary reset code" in message.body
+    assert message.subject == "Reset your RetailMetrics password"
+    assert ">Reset password</a>" in message.body
+    assert "temporary reset code" not in message.body
+    assert "account=customer" in html.unescape(message.body)
     raw_token = token_from_message(message)
 
     FakeSmtp.sent.clear()
@@ -227,4 +231,4 @@ def test_live_frontend_never_renders_reset_token(monkeypatch):
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("Token rendered")),
     )
     unified_auth._request_reset(FakeClient(), "customer@example.com")
-    assert successes == ["If the email is registered, password-reset instructions have been sent."]
+    assert successes == ["If the email is registered, a password-reset link has been sent."]

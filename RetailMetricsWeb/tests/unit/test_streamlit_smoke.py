@@ -5,7 +5,6 @@ from streamlit.testing.v1 import AppTest
 
 from frontend.api_client import APIClient, APIError
 from frontend.navigation import (
-    CUSTOMER_ACCOUNT_NAVIGATION,
     INTERNAL_MODULE_NAMES,
     navigation_for_role,
 )
@@ -13,9 +12,35 @@ from frontend.navigation import (
 
 APP_FILE = Path(__file__).resolve().parents[2] / "frontend" / "app.py"
 
+PUBLIC_PRODUCT = {
+    "product_id": 4,
+    "product_name": "The Birthday Sugar Panda",
+    "description": "A panda-themed favorite.",
+    "current_price_usd": "45.99",
+    "image_url": None,
+    "is_available": True,
+}
+
+
+def _open_public_sign_in(app: AppTest) -> AppTest:
+    next(button for button in app.button if button.key == "public_sign_in").click().run(timeout=20)
+    return app
+
 
 def _navigate(app: AppTest, label: str) -> AppTest:
     next(button for button in app.sidebar.button if button.label == label).click().run(timeout=20)
+    return app
+
+
+def _customer_navigate(app: AppTest, destination: str) -> AppTest:
+    keys = {
+        "Home / Shop": "customer_desktop_shop",
+        "Cart": "customer_desktop_cart",
+        "My Orders": "customer_desktop_orders",
+        "My Account": "customer_desktop_account",
+        "Logout": "customer_desktop_logout",
+    }
+    next(button for button in app.button if button.key == keys[destination]).click().run(timeout=20)
     return app
 
 
@@ -27,7 +52,12 @@ def _assert_no_generic_transaction_crud(app: AppTest, create_label: str) -> None
     assert create_label.lower() not in [heading.value.lower() for heading in app.subheader]
 
 
-def test_anonymous_streamlit_pages_render_without_runtime_errors() -> None:
+def test_anonymous_streamlit_pages_render_without_runtime_errors(monkeypatch) -> None:
+    def get(_: APIClient, path: str, params=None):
+        assert path == "/store/products"
+        return [PUBLIC_PRODUCT.copy()]
+
+    monkeypatch.setattr(APIClient, "get", get)
     app = AppTest.from_file(str(APP_FILE)).run(timeout=20)
     assert not app.exception
     assert not app.sidebar.radio
@@ -37,9 +67,19 @@ def test_anonymous_streamlit_pages_render_without_runtime_errors() -> None:
     assert 'data-testid="stSidebar"' in styles
     assert 'data-testid="stSidebarCollapsedControl"' in styles
     assert not app.radio
-    assert [title.value for title in app.title] == ["Welcome back"]
+    rendered = " ".join(item.value for item in app.markdown)
+    assert "Small toys" in rendered
+    assert "What shoppers enjoy" in rendered
+    assert "1 available product" in rendered
+    assert "Add to bag" in [button.label for button in app.button]
+    assert "Email or username" not in [item.label for item in app.text_input]
+
+    next(button for button in app.button if button.label == "Add to bag").click().run(timeout=20)
+    next(button for button in app.button if button.key == "public_cart").click().run(timeout=20)
+    assert "Your shopping bag" in " ".join(item.value for item in app.markdown)
+    next(button for button in app.button if button.label == "Sign in to checkout").click().run(timeout=20)
     assert {item.label for item in app.text_input} >= {"Email or username", "Password"}
-    assert "Show password" in [item.label for item in app.checkbox]
+    assert "Show password" not in [item.label for item in app.checkbox]
     assert "Sign In" in [button.label for button in app.button]
     rendered = " ".join(item.value for item in app.markdown)
     for removed in ("Customer Portal", "Staff Portal", "Customer Login", "Customer Register"):
@@ -47,12 +87,53 @@ def test_anonymous_streamlit_pages_render_without_runtime_errors() -> None:
 
     next(button for button in app.button if button.label == "Create an account").click().run(timeout=20)
     assert not app.exception
-    assert [title.value for title in app.title] == ["Create your customer account"]
+    assert [title.value for title in app.title] == ["Create your account"]
+    assert "Create account" in [button.label for button in app.button]
 
     next(button for button in app.button if button.label == "Back to sign in").click().run(timeout=20)
     next(button for button in app.button if button.label == "Forgot password?").click().run(timeout=20)
     assert not app.exception
-    assert [title.value for title in app.title] == ["Password recovery"]
+    assert [title.value for title in app.title] == ["Forgot your password?"]
+    assert "Reset Password" in [button.label for button in app.button]
+    assert not app.tabs
+    assert "Reset code" not in [item.label for item in app.text_input]
+
+
+def test_email_reset_link_opens_a_dedicated_password_page(monkeypatch) -> None:
+    calls = []
+
+    def post(_: APIClient, path: str, payload=None):
+        calls.append((path, payload))
+        if path == "/customer/auth/reset-password":
+            return {"message": "Password reset; existing customer tokens were invalidated."}
+        raise AssertionError(path)
+
+    monkeypatch.setattr(APIClient, "post", post)
+    app = AppTest.from_file(str(APP_FILE))
+    app.query_params["reset_token"] = "email-link-token"
+    app.query_params["account"] = "customer"
+    app.run(timeout=20)
+
+    assert not app.exception
+    assert [title.value for title in app.title] == ["Choose a new password"]
+    assert not app.tabs
+    labels = [item.label for item in app.text_input]
+    assert labels == ["New password", "Confirm new password"]
+    assert "Account email" not in labels and "Reset code" not in labels
+
+    next(item for item in app.text_input if item.label == "New password").set_value("New-customer-password-2!")
+    next(item for item in app.text_input if item.label == "Confirm new password").set_value("New-customer-password-2!")
+    next(button for button in app.button if button.label == "Reset password").click().run(timeout=20)
+
+    assert calls == [(
+        "/customer/auth/reset-password",
+        {"reset_token": "email-link-token", "new_password": "New-customer-password-2!"},
+    )]
+    assert "Password reset successfully. You can now sign in." in [item.value for item in app.success]
+    assert "Continue to sign in" in [button.label for button in app.button]
+    next(button for button in app.button if button.label == "Continue to sign in").click().run(timeout=20)
+    assert {item.label for item in app.text_input} >= {"Email or username", "Password"}
+    assert not app.query_params
 
 
 @pytest.mark.parametrize("role", ["admin", "operations_staff", "analyst"])
@@ -69,6 +150,7 @@ def test_successful_staff_login_restores_role_navigation(monkeypatch, role: str)
     monkeypatch.setattr(APIClient, "post", post)
     app = AppTest.from_file(str(APP_FILE)).run(timeout=20)
     assert not app.sidebar.button
+    _open_public_sign_in(app)
     next(item for item in app.text_input if item.label == "Email or username").set_value("operator")
     next(item for item in app.text_input if item.label == "Password").set_value("not-used-by-mock")
     next(button for button in app.button if button.label == "Sign In").click().run(timeout=20)
@@ -80,6 +162,8 @@ def test_successful_staff_login_restores_role_navigation(monkeypatch, role: str)
 
 def test_successful_customer_login_restores_customer_navigation(monkeypatch) -> None:
     def get(_: APIClient, path: str, params=None):
+        if path == "/store/products":
+            return [PUBLIC_PRODUCT.copy()]
         if path == "/customer/auth/me":
             return {
                 "customer_account_id": 105,
@@ -90,6 +174,8 @@ def test_successful_customer_login_restores_customer_navigation(monkeypatch) -> 
             }
         if path == "/customer/store/products":
             return []
+        if path == "/customer/cart":
+            return {"items": [], "total_quantity": 0}
         raise AssertionError(path)
 
     def post(_: APIClient, path: str, payload=None):
@@ -103,21 +189,71 @@ def test_successful_customer_login_restores_customer_navigation(monkeypatch) -> 
     monkeypatch.setattr(APIClient, "post", post)
     app = AppTest.from_file(str(APP_FILE)).run(timeout=20)
     assert not app.sidebar.button
+    _open_public_sign_in(app)
     next(item for item in app.text_input if item.label == "Email or username").set_value("customer@example.com")
     next(item for item in app.text_input if item.label == "Password").set_value("not-used-by-mock")
     next(button for button in app.button if button.label == "Sign In").click().run(timeout=20)
 
     assert not app.exception
     assert app.session_state["customer_access_token"] == "signed-customer-token"
-    assert tuple(button.label for button in app.sidebar.button) == CUSTOMER_ACCOUNT_NAVIGATION
+    assert not app.sidebar.button
+    customer_keys = {button.key for button in app.button}
+    assert {"customer_desktop_shop", "customer_desktop_cart", "customer_desktop_orders",
+            "customer_desktop_account", "customer_desktop_logout"} <= customer_keys
+
+
+def test_guest_bag_moves_to_customer_cart_after_checkout_login(monkeypatch) -> None:
+    cart_adds = []
+
+    def get(_: APIClient, path: str, params=None):
+        if path == "/customer/auth/me":
+            return {
+                "customer_account_id": 105, "email": "customer@example.com", "is_active": True,
+                "first_name": "Presentation", "last_name": "Customer",
+            }
+        if path == "/customer/cart":
+            return {"items": [], "total_quantity": 0}
+        if path == "/customer/store/products":
+            return []
+        raise AssertionError(path)
+
+    def post(_: APIClient, path: str, payload=None):
+        if path == "/auth/login":
+            raise APIError(401, "Not a staff account")
+        if path == "/customer/auth/login":
+            return {"access_token": "signed-customer-token", "token_type": "bearer", "expires_in": 1800}
+        if path == "/customer/cart/items":
+            cart_adds.append(payload)
+            return {"cart_item_id": 1}
+        raise AssertionError(path)
+
+    monkeypatch.setattr(APIClient, "get", get)
+    monkeypatch.setattr(APIClient, "post", post)
+    app = AppTest.from_file(str(APP_FILE))
+    app.session_state["public_store_view"] = "auth"
+    app.session_state["guest_checkout_intent"] = True
+    app.session_state["guest_cart"] = {
+        "4": {"product": PUBLIC_PRODUCT.copy(), "quantity": 2},
+    }
+    app.run(timeout=20)
+    next(item for item in app.text_input if item.label == "Email or username").set_value("customer@example.com")
+    next(item for item in app.text_input if item.label == "Password").set_value("not-used-by-mock")
+    next(button for button in app.button if button.label == "Sign In").click().run(timeout=20)
+
+    assert not app.exception
+    assert cart_adds == [{"product_id": 4, "quantity": 2}]
+    assert app.session_state["guest_cart"] == {}
+    assert app.session_state["customer_navigation"] == "Cart"
 
 
 def test_unified_login_failure_is_generic(monkeypatch) -> None:
+    monkeypatch.setattr(APIClient, "get", lambda *args, **kwargs: [PUBLIC_PRODUCT.copy()])
     def reject(*args, **kwargs):
         raise APIError(401, "Store-specific account detail must remain hidden")
 
     monkeypatch.setattr(APIClient, "post", reject)
     app = AppTest.from_file(str(APP_FILE)).run(timeout=20)
+    _open_public_sign_in(app)
     next(item for item in app.text_input if item.label == "Email or username").set_value(
         "unknown@example.com"
     )
@@ -132,6 +268,8 @@ def test_unified_login_failure_is_generic(monkeypatch) -> None:
 
 def _fake_get(role_state):
     def get(_: APIClient, path: str, params=None):
+        if path == "/store/products":
+            return [PUBLIC_PRODUCT.copy()]
         if path == "/auth/me":
             return {
                 "app_user_id": 1,
@@ -192,7 +330,7 @@ def test_authenticated_pages_and_role_navigation_render(monkeypatch) -> None:
         "Customers": "Customers",
         "Products": "Products",
         "Orders": "Orders",
-        "Refunds": "Refunds",
+        "Refund Requests": "Refund Requests",
         "Website Traffic": "Website Traffic",
         "Business Reports": "Business Reports",
         "My Account": "My Account",
@@ -358,7 +496,7 @@ def test_analyst_pages_use_deidentified_compact_business_views(monkeypatch) -> N
     assert list(app.dataframe[-1].value.columns) == ["Order #", "Customer", "Date", "Total", "Status", "Source"]
     assert app.dataframe[-1].value.iloc[0]["Status"] == "Historical Record"
 
-    _navigate(app, "Refunds")
+    _navigate(app, "Refund Requests")
     assert list(app.dataframe[-1].value.columns) == ["Refund #", "Order #", "Amount", "Date", "Source"]
 
     _navigate(app, "Website Traffic")
@@ -447,7 +585,7 @@ def test_role_specific_crud_controls_remain_visible_only_when_allowed(monkeypatc
     _navigate(app, "Orders")
     _assert_no_generic_transaction_crud(app, "Create order")
     assert "Start Processing" not in [button.label for button in app.button]
-    _navigate(app, "Refunds")
+    _navigate(app, "Refund Requests")
     _assert_no_generic_transaction_crud(app, "Create refund")
 
     role_state["role"] = "operations_staff"
@@ -464,7 +602,7 @@ def test_role_specific_crud_controls_remain_visible_only_when_allowed(monkeypatc
     assert "Create Order Item" not in [button.label for button in app.button]
     assert "Delete record" not in [button.label for button in app.button]
     assert "Order Items" not in [button.label for button in app.sidebar.button]
-    _navigate(app, "Refunds")
+    _navigate(app, "Refund Requests")
     _assert_no_generic_transaction_crud(app, "Create refund")
 
     role_state["role"] = "admin"
@@ -477,7 +615,7 @@ def test_role_specific_crud_controls_remain_visible_only_when_allowed(monkeypatc
     _navigate(app, "Orders")
     _assert_no_generic_transaction_crud(app, "Create order")
 
-    _navigate(app, "Refunds")
+    _navigate(app, "Refund Requests")
     _assert_no_generic_transaction_crud(app, "Create refund")
 
     _navigate(app, "Website Traffic")
@@ -564,18 +702,23 @@ def test_customer_authenticated_navigation_is_separate(monkeypatch) -> None:
     app.session_state["active_portal"] = "customer"
     app.run(timeout=20)
     assert not app.exception
-    customer_navigation = tuple(button.label for button in app.sidebar.button)
-    assert customer_navigation == ("Home / Shop", "Cart", "My Orders", "My Account", "Logout")
-    assert any("Toys for Brighter Days" in item.value for item in app.markdown)
+    assert not app.sidebar.button
+    customer_navigation = {button.key for button in app.button if str(button.key).startswith("customer_desktop_")}
+    assert customer_navigation == {
+        "customer_desktop_shop", "customer_desktop_cart", "customer_desktop_orders",
+        "customer_desktop_account", "customer_desktop_logout",
+    }
+    assert any("RetailMetrics Toy Store" in item.value for item in app.markdown)
+    assert any('class="rm-shop-hero"' in item.value for item in app.markdown)
     customer_copy = " ".join(
         item.value for collection in (app.caption, app.info, app.warning, app.success)
         for item in collection
     )
     for internal_label in ("record_origin", "canonical", "Customer-created", "Application-created", "Historical data"):
         assert internal_label not in customer_copy
-    _navigate(app, "Cart")
+    _customer_navigate(app, "Cart")
     assert "Your Cart" in [title.value for title in app.title]
-    _navigate(app, "My Account")
+    _customer_navigate(app, "My Account")
     assert "My Account" in [title.value for title in app.title]
     labels = [tab.label for tab in app.tabs]
     for expected in ("Profile", "Addresses", "Payment Methods", "Security"):
@@ -624,7 +767,7 @@ def test_customer_storefront_cards_details_and_cart_warnings_render(monkeypatch)
     next(button for button in app.button if button.label == "View Details").click().run(timeout=20)
     assert not app.exception
     assert "Back to products" in " ".join(button.label for button in app.button)
-    _navigate(app, "Cart")
+    _customer_navigate(app, "Cart")
     assert not app.exception
     assert "Update" in [button.label for button in app.button]
     assert "Remove" in [button.label for button in app.button]
@@ -698,13 +841,13 @@ def test_checkout_and_customer_order_pages_render(monkeypatch) -> None:
     app.session_state["customer_access_token"] = "customer-token"
     app.session_state["active_portal"] = "customer"
     app.run(timeout=20)
-    _navigate(app, "Cart")
+    _customer_navigate(app, "Cart")
     next(button for button in app.button if button.label == "Proceed to Checkout").click().run(timeout=20)
     assert not app.exception
     assert "Checkout" in [title.value for title in app.title]
     assert "Place Order" in [button.label for button in app.button]
     app.session_state["show_checkout"] = False
-    _navigate(app, "My Orders")
+    _customer_navigate(app, "My Orders")
     assert "My Orders" in [title.value for title in app.title]
     next(button for button in app.button if button.label == "View Order").click().run(timeout=20)
     assert not app.exception
@@ -720,10 +863,18 @@ def test_staff_refund_request_actions_are_role_aware(monkeypatch) -> None:
         "reason": "Damaged", "status": "pending", "created_at": "2026-09-11T10:00:00+00:00",
         "reviewed_at": None, "resolution_note": None, "row_version": 1,
     }
+    refund_record = {
+        "order_item_refund_id": 15, "order_id": 7, "order_item_id": 8,
+        "product_name": "Demo Toy", "refund_amount_usd": "4.00",
+        "created_at": "2026-09-12T10:00:00+00:00", "origin": "customer",
+        "created_by_app_user_id": 1, "row_version": 1,
+    }
 
     def get(client: APIClient, path: str, params=None):
         if path == "/refund-requests":
             return {"items": [request], "total": 1, "limit": 25, "offset": 0}
+        if path == "/refunds":
+            return {"items": [refund_record], "total": 1, "limit": 25, "offset": 0}
         return _fake_get(role_state)(client, path, params)
 
     monkeypatch.setattr(APIClient, "get", get)
@@ -734,9 +885,13 @@ def test_staff_refund_request_actions_are_role_aware(monkeypatch) -> None:
     assert not app.exception
     assert "Approve" in [button.label for button in app.button]
     assert "Reject" in [button.label for button in app.button]
-    assert list(app.dataframe[-1].value.columns) == [
+    request_history = next(frame.value for frame in app.dataframe if "Request #" in frame.value.columns)
+    assert list(request_history.columns) == [
         "Request #", "Order #", "Product", "Amount", "Reason", "Status", "Requested", "Outcome",
     ]
+    refund_history = next(frame.value for frame in app.dataframe if "Refund #" in frame.value.columns)
+    assert list(refund_history.columns) == ["Refund #", "Order #", "Product", "Amount", "Date", "Source"]
+    assert "All refund history and records" in [item.label for item in app.expander]
     assert "Item #8" not in " ".join(element.value for element in app.markdown)
     request["status"] = "approved"
     app.run(timeout=20)
@@ -801,6 +956,7 @@ def test_customer_order_workflow_controls_are_role_aware(monkeypatch) -> None:
     assert not app.exception
     assert "Start Processing" in [button.label for button in app.button]
     assert "Cancel Pending Order" in [button.label for button in app.button]
+    assert "All order records" in [item.label for item in app.expander]
     assert list(app.dataframe[0].value.columns) == [
         "Order #", "Customer", "Date", "Total", "Payment", "Status",
     ]
@@ -822,6 +978,78 @@ def test_customer_order_workflow_controls_are_role_aware(monkeypatch) -> None:
     workflow_order["order_status"] = "delivered"
     app.run(timeout=20)
     assert "Mark Ready / Shipped" not in [button.label for button in app.button]
+
+
+def test_order_action_queue_is_complete_oldest_first_and_above_history(monkeypatch) -> None:
+    role_state = {"role": "operations_staff"}
+    newest = {
+        "order_id": 70012, "customer_account_id": 22,
+        "created_at": "2026-09-12T10:00:00+00:00", "total_usd": "30.00",
+        "payment_status": "paid", "order_status": "pending", "origin": "customer", "row_version": 1,
+    }
+    oldest = {
+        "order_id": 70011, "customer_account_id": 21,
+        "created_at": "2026-09-10T08:00:00+00:00", "total_usd": "20.00",
+        "payment_status": "paid", "order_status": "pending", "origin": "customer", "row_version": 1,
+    }
+    seen_params = []
+
+    def get(client: APIClient, path: str, params=None):
+        if path == "/order-workflow/orders":
+            seen_params.append(dict(params or {}))
+            return {"items": [newest, oldest], "total": 2, "limit": 25, "offset": 0}
+        return _fake_get(role_state)(client, path, params)
+
+    monkeypatch.setattr(APIClient, "get", get)
+    app = AppTest.from_file(str(APP_FILE))
+    app.session_state["access_token"] = "staff-token"
+    app.run(timeout=20)
+    _navigate(app, "Orders")
+
+    assert not app.exception
+    action_selector = next(box for box in app.selectbox if box.label == "Order to process")
+    assert action_selector.value == oldest["order_id"]
+    assert app.dataframe[0].value["Order #"].tolist() == [oldest["order_id"], newest["order_id"]]
+    assert next(button for button in app.button if button.label == "Start Processing")
+    assert any(params.get("actionable_only") is True for params in seen_params)
+    assert [box.label for box in app.selectbox].index("Order to process") < [box.label for box in app.selectbox].index("History filter")
+
+
+def test_refund_action_queue_is_complete_oldest_first_and_above_history(monkeypatch) -> None:
+    role_state = {"role": "operations_staff"}
+    newest = {
+        "refund_request_id": 12, "order_id": 8, "order_item_id": 10,
+        "product_id": 2, "product_name": "Newer Toy", "requested_amount": "6.00",
+        "reason": "Missing part", "status": "pending", "created_at": "2026-09-12T10:00:00+00:00",
+        "reviewed_at": None, "resolution_note": None, "row_version": 1,
+    }
+    oldest = {
+        "refund_request_id": 11, "order_id": 7, "order_item_id": 9,
+        "product_id": 1, "product_name": "Older Toy", "requested_amount": "4.00",
+        "reason": "Damaged", "status": "pending", "created_at": "2026-09-10T08:00:00+00:00",
+        "reviewed_at": None, "resolution_note": None, "row_version": 1,
+    }
+    seen_params = []
+
+    def get(client: APIClient, path: str, params=None):
+        if path == "/refund-requests":
+            seen_params.append(dict(params or {}))
+            return {"items": [newest, oldest], "total": 2, "limit": 25, "offset": 0}
+        return _fake_get(role_state)(client, path, params)
+
+    monkeypatch.setattr(APIClient, "get", get)
+    app = AppTest.from_file(str(APP_FILE))
+    app.session_state["access_token"] = "staff-token"
+    app.run(timeout=20)
+    _navigate(app, "Refund Requests")
+
+    assert not app.exception
+    action_selector = next(box for box in app.selectbox if box.label == "Request to review")
+    assert action_selector.value == oldest["refund_request_id"]
+    assert app.dataframe[0].value["Request #"].tolist() == [oldest["refund_request_id"], newest["refund_request_id"]]
+    assert next(button for button in app.button if button.label == "Approve")
+    assert any(params.get("actionable_only") is True for params in seen_params)
+    assert [box.label for box in app.selectbox].index("Request to review") < [box.label for box in app.selectbox].index("History filter")
 
 
 def test_operations_workspace_uses_compact_read_only_projections(monkeypatch) -> None:
@@ -886,7 +1114,7 @@ def test_operations_workspace_uses_compact_read_only_projections(monkeypatch) ->
     assert "Configure storefront details" not in [item.label for item in app.expander]
     assert not app.number_input
 
-    _navigate(app, "Refunds")
+    _navigate(app, "Refund Requests")
     assert list(app.dataframe[-1].value.columns) == ["Refund #", "Order #", "Product", "Amount", "Date", "Source"]
     _assert_no_generic_transaction_crud(app, "Create refund")
 
@@ -946,9 +1174,9 @@ def test_admin_dashboard_and_final_navigation_are_management_focused(monkeypatch
     assert "Website Sessions" not in [button.label for button in app.sidebar.button]
     assert "Website Pageviews" not in [button.label for button in app.sidebar.button]
     metric_labels = [metric.label for metric in app.metric]
-    assert "Historical Orders" in metric_labels
     assert "Customer Orders" in metric_labels
     assert "Baseline Orders" not in metric_labels
+    assert any("Historical orders" in markdown.value for markdown in app.markdown)
 
     _navigate(app, "Website Traffic")
     assert [tab.label for tab in app.tabs] == ["Sessions", "Pageviews"]
@@ -1036,6 +1264,9 @@ def test_admin_customer_activity_and_product_management_are_cleanly_separated(mo
     _navigate(app, "Customers")
     historical = next(frame.value for frame in app.dataframe if "Refunds" in frame.value.columns)
     registered = next(frame.value for frame in app.dataframe if "Email" in frame.value.columns)
+    assert "Earlier customer activity" in [item.label for item in app.expander]
+    assert not app.tabs
+    assert "Email" in app.dataframe[0].value.columns
     assert list(historical.columns) == ["Customer", "Orders", "Total Spent", "Refunds", "Last Activity"]
     assert list(registered.columns) == ["Customer", "Email", "Orders", "Total Spent", "Account Since", "Status"]
     assert "Unlock account" not in [button.label for button in app.button]

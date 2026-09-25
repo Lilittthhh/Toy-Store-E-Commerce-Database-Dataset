@@ -49,6 +49,7 @@ class Settings:
     auth_lockout_minutes: int = 15
     auth_reset_token_minutes: int = 15
     auth_expose_reset_token: bool = False
+    frontend_base_url: str = "http://localhost:8501"
     audit_trail_enabled: bool = False
     notification_mode: str = "mock"
     email_provider: str = "smtp"
@@ -59,10 +60,14 @@ class Settings:
     smtp_from_email: str = ""
     smtp_from_name: str = "RetailMetrics"
     smtp_live_send_enabled: bool = False
-    sms_provider: str = "brevo"
+    sms_provider: str = "android_gateway"
     brevo_api_key: str = field(default="", repr=False)
     brevo_sms_sender: str = "RetailMetrics"
     brevo_sms_live_send_enabled: bool = False
+    sms_gateway_url: str = "https://api.sms-gate.app/3rdparty/v1/message"
+    sms_gateway_username: str = field(default="", repr=False)
+    sms_gateway_password: str = field(default="", repr=False)
+    sms_gateway_live_send_enabled: bool = False
     sms_live_send_enabled: bool = False
     infobip_base_url: str = ""
     infobip_email_api_key: str = field(default="", repr=False)
@@ -87,9 +92,9 @@ class Settings:
         email_provider = os.getenv("EMAIL_PROVIDER", "smtp").strip().lower()
         if email_provider not in {"mock", "smtp", "infobip"}:
             raise RuntimeError("EMAIL_PROVIDER must be mock, smtp, or infobip")
-        sms_provider = os.getenv("SMS_PROVIDER", "brevo").strip().lower()
-        if sms_provider not in {"mock", "brevo"}:
-            raise RuntimeError("SMS_PROVIDER must be mock or brevo")
+        sms_provider = os.getenv("SMS_PROVIDER", "android_gateway").strip().lower()
+        if sms_provider not in {"mock", "brevo", "android_gateway"}:
+            raise RuntimeError("SMS_PROVIDER must be mock, brevo, or android_gateway")
 
         pool_min = _positive_int("DB_POOL_MIN", 1)
         pool_max = _positive_int("DB_POOL_MAX", 8)
@@ -112,6 +117,7 @@ class Settings:
             auth_lockout_minutes=_positive_int("AUTH_LOCKOUT_MINUTES", 15),
             auth_reset_token_minutes=_positive_int("AUTH_RESET_TOKEN_MINUTES", 15),
             auth_expose_reset_token=_boolean("AUTH_EXPOSE_RESET_TOKEN", False),
+            frontend_base_url=(os.getenv("FRONTEND_BASE_URL") or "http://localhost:8501").strip().rstrip("/"),
             audit_trail_enabled=_boolean("AUDIT_TRAIL_ENABLED", False),
             notification_mode=notification_mode,
             email_provider=email_provider,
@@ -126,6 +132,10 @@ class Settings:
             brevo_api_key=os.getenv("BREVO_API_KEY", "").strip(),
             brevo_sms_sender=os.getenv("BREVO_SMS_SENDER", "RetailMetrics").strip(),
             brevo_sms_live_send_enabled=_boolean("BREVO_SMS_LIVE_SEND_ENABLED", False),
+            sms_gateway_url=os.getenv("SMS_GATEWAY_URL", "https://api.sms-gate.app/3rdparty/v1/message").strip(),
+            sms_gateway_username=os.getenv("SMS_GATEWAY_USERNAME", "").strip(),
+            sms_gateway_password=os.getenv("SMS_GATEWAY_PASSWORD", ""),
+            sms_gateway_live_send_enabled=_boolean("SMS_GATEWAY_LIVE_SEND_ENABLED", False),
             sms_live_send_enabled=_boolean("SMS_LIVE_SEND_ENABLED", False),
             infobip_base_url=os.getenv("INFOBIP_BASE_URL", "").strip(),
             infobip_email_api_key=os.getenv("INFOBIP_EMAIL_API_KEY", "").strip(),

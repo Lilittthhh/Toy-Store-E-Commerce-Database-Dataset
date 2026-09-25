@@ -3,7 +3,7 @@ from __future__ import annotations
 import streamlit as st
 
 from frontend.api_client import APIClient, APIError
-from frontend.ui import data_page_header, format_datetime, pagination_controls, section_label, show_api_error
+from frontend.ui import data_page_header, detail_summary, format_datetime, pagination_controls, section_label, show_api_error
 
 
 ROLE_LABELS = {
@@ -20,7 +20,7 @@ def render(client: APIClient, current_user: dict) -> None:
         "users",
     )
     section_label("Directory filters")
-    with st.container(border=True):
+    with st.container():
         filters = st.columns([2, 1, 1, 1])
         search = filters[0].text_input("Search username or email")
         role = filters[1].selectbox("Role", ["all", *ROLE_LABELS], format_func=lambda value: "All roles" if value == "all" else ROLE_LABELS[value])
@@ -70,6 +70,7 @@ def render(client: APIClient, current_user: dict) -> None:
             st.subheader("Create application user")
             st.caption("Assign the initial role now; access can be changed later without deleting the account.")
             with st.form("admin_create_user"):
+                st.markdown('<span class="rm-compact-form-marker"></span>', unsafe_allow_html=True)
                 username = st.text_input("Username")
                 email = st.text_input("Email")
                 password = st.text_input("Temporary password", type="password")
@@ -89,7 +90,13 @@ def render(client: APIClient, current_user: dict) -> None:
             selected_id = st.selectbox("User", [row["app_user_id"] for row in rows], format_func=lambda value: next(f"{row['username']} · {ROLE_LABELS[row['role']]}" for row in rows if row["app_user_id"] == value))
             selected = next(row for row in rows if row["app_user_id"] == selected_id)
             lock_text = format_datetime(selected["locked_until"]) if selected["locked_until"] else "Not locked"
-            st.caption(f"Current status: {'Active' if selected['is_active'] else 'Inactive'} · Lock status: {lock_text}")
+            detail_summary(
+                selected["username"],
+                selected["email"],
+                (("Role", ROLE_LABELS[selected["role"]]),
+                 ("Account", "Active" if selected["is_active"] else "Inactive"),
+                 ("Security", lock_text)),
+            )
 
             with st.container(border=True):
                 new_role = st.selectbox("New role", list(ROLE_LABELS), index=list(ROLE_LABELS).index(selected["role"]), format_func=ROLE_LABELS.get, key="manage_role")

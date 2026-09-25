@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from html import escape
+
 import streamlit as st
 
 from frontend.api_client import APIClient, APIError
@@ -14,25 +16,31 @@ def render(client: APIClient, customer: dict) -> None:
     except APIError as exc:
         show_api_error(exc)
         return
-    heading, membership = st.columns([4.5, 1.15], vertical_alignment="bottom")
-    with heading:
-        st.title("My Account")
-        st.caption("Review your profile, manage saved information, and keep your account secure.")
-    membership.metric("Member since", format_datetime(customer["created_at"]).split(" · ")[0])
-    with st.container(border=True):
-        st.markdown('<span class="rm-account-card-marker"></span>', unsafe_allow_html=True)
-        identity, email, status = st.columns([1.4, 2.3, 1])
-        identity.markdown(f"**Name**  \n{profile['first_name']} {profile['last_name']}")
-        email.markdown(f"**Email address**  \n{customer['email']}")
-        status.markdown(f"**Status**  \n{'Active' if customer['is_active'] else 'Inactive'}")
-        st.caption("Your email address is used to sign in and is managed separately from your profile.")
+    st.title("My Account")
+    st.markdown(
+        f"""
+        <section class="rm-account-hero">
+          <div>
+            <span class="rm-account-eyebrow">Customer account</span>
+            <h1>{escape(profile['first_name'])} {escape(profile['last_name'])}</h1>
+            <p>{escape(customer['email'])}</p>
+          </div>
+          <dl>
+            <div><dt>Member since</dt><dd>{escape(format_datetime(customer['created_at']).split(' · ')[0])}</dd></div>
+            <div><dt>Account</dt><dd>{'Active' if customer['is_active'] else 'Inactive'}</dd></div>
+          </dl>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.caption("Manage your profile, delivery information, simulated payment methods, and account security.")
 
     profile_tab, addresses_tab, payments_tab, security_tab = st.tabs(
         ["Profile", "Addresses", "Payment Methods", "Security"]
     )
     with profile_tab:
         section_label("Personal details")
-        profile_content, _ = st.columns([2.3, 1])
+        _, profile_content, _ = st.columns([.55, 2.4, .55])
         with profile_content:
             with st.form("customer_profile_form"):
                 first_name = st.text_input("First name", value=profile["first_name"])
@@ -60,7 +68,7 @@ def render(client: APIClient, customer: dict) -> None:
     with security_tab:
         section_label("Change password")
         st.caption("Changing your password signs your account out on every device.")
-        security_content, _ = st.columns([2.3, 1])
+        _, security_content, _ = st.columns([.55, 2.4, .55])
         with security_content:
             with st.form("customer_change_password_form"):
                 current = st.text_input("Current password", type="password")

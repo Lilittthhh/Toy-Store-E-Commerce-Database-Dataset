@@ -42,8 +42,10 @@ def customer_refund_eligibility(order_id: int = Path(gt=0), customer: CustomerAc
 
 
 @router.get("/refund-requests", response_model=RefundRequestPage)
-def list_staff_refund_requests(status_filter: RefundRequestStatus | None = Query(default=None), limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), _: AppUser = Depends(require_roles(*ALL_STAFF_ROLES)), service: RefundWorkflowService = Depends(get_refund_workflow_service)):
-    items, total = service.list_staff_requests(status_filter.value if status_filter else None, limit, offset)
+def list_staff_refund_requests(status_filter: RefundRequestStatus | None = Query(default=None), actionable_only: bool = Query(default=False), limit: int = Query(default=50, ge=1, le=100), offset: int = Query(default=0, ge=0), _: AppUser = Depends(require_roles(*ALL_STAFF_ROLES)), service: RefundWorkflowService = Depends(get_refund_workflow_service)):
+    items, total = service.list_staff_requests(
+        status_filter.value if status_filter else None, limit, offset, actionable_only
+    )
     return {"items": items, "total": total, "limit": limit, "offset": offset}
 
 

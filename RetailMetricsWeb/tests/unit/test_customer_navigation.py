@@ -141,7 +141,7 @@ def _install_customer_api(monkeypatch, state: dict, order_status: str = "ready_s
                     "first_name": CUSTOMER["first_name"], "last_name": CUSTOMER["last_name"],
                     "phone": CUSTOMER.get("phone"), "row_version": CUSTOMER["profile_row_version"]}
         if path == "/customer/store/products":
-            return [PRODUCT.copy()]
+            return [] if state.get("empty_search") else [PRODUCT.copy()]
         if path == "/customer/store/products/4":
             return PRODUCT.copy()
         if path == "/customer/cart":
@@ -220,7 +220,14 @@ def _button(app: AppTest, label: str):
 
 
 def _customer_nav(app: AppTest, label: str) -> AppTest:
-    next(button for button in app.sidebar.button if button.label == label).click().run(timeout=20)
+    keys = {
+        "Home / Shop": "customer_desktop_shop",
+        "Cart": "customer_desktop_cart",
+        "My Orders": "customer_desktop_orders",
+        "My Account": "customer_desktop_account",
+        "Logout": "customer_desktop_logout",
+    }
+    next(button for button in app.button if button.key == keys[label]).click().run(timeout=20)
     return app
 
 
@@ -236,13 +243,16 @@ def _visible_customer_text(app: AppTest) -> str:
     )
 
 
-def test_customer_navigation_is_compact_button_menu(monkeypatch) -> None:
+def test_customer_navigation_is_website_header_not_staff_sidebar(monkeypatch) -> None:
     _install_customer_api(monkeypatch, {})
     app = _customer_app()
 
-    assert [button.label for button in app.sidebar.button] == [
-        "Home / Shop", "Cart", "My Orders", "My Account", "Logout",
-    ]
+    assert not app.sidebar.button
+    keys = {button.key for button in app.button}
+    assert {"customer_desktop_shop", "customer_desktop_cart", "customer_desktop_orders",
+            "customer_desktop_account", "customer_desktop_logout"} <= keys
+    assert {"customer_mobile_shop", "customer_mobile_cart", "customer_mobile_orders",
+            "customer_mobile_account", "customer_mobile_logout"} <= keys
     assert not app.sidebar.radio
 
 
@@ -275,15 +285,40 @@ def test_shop_cart_checkout_and_product_back_navigation(monkeypatch) -> None:
 
 def test_product_cards_keep_description_before_aligned_actions() -> None:
     storefront_source = (APP_FILE.parent / "views" / "storefront.py").read_text(encoding="utf-8")
-    theme_source = (APP_FILE.parent / "ui.py").read_text(encoding="utf-8")
+    css_source = (APP_FILE.parent / "assets" / "retailmetrics.css").read_text(encoding="utf-8")
 
     marker = storefront_source.index('class="rm-product-card-marker"')
     description = storefront_source.index('class="rm-product-description"', marker)
     details = storefront_source.index('"View Details"', description)
     cart = storefront_source.index('"Add to Cart"', details)
     assert marker < description < details < cart
-    assert "-webkit-line-clamp:2" in theme_source
-    assert '[class*="st-key-view_product_"] {margin-top:auto;}' in theme_source
+    assert "-webkit-line-clamp:2" in css_source.replace(" ", "")
+    assert 'st-key-view_product_' in css_source and "margin-top:auto" in css_source.replace(" ", "")
+
+
+@pytest.mark.parametrize("empty_search", [False, True])
+def test_search_from_product_details_returns_to_results(monkeypatch, empty_search) -> None:
+    state = {}
+    _install_customer_api(monkeypatch, state)
+    app = _customer_app()
+    _button(app, "View Details").click().run(timeout=20)
+    assert not app.exception
+    assert PRODUCT["product_name"] in [heading.value for heading in app.subheader]
+    assert 'href="#featured-products"' not in " ".join(item.value for item in app.markdown)
+    state["empty_search"] = empty_search
+    query = "no match" if empty_search else "Configured"
+    next(item for item in app.text_input if item.key == "store_search").set_value(query).run(timeout=20)
+    assert not app.exception
+    assert not any("Back to products" in button.label for button in app.button)
+    markup = " ".join(item.value for item in app.markdown)
+    assert 'id="featured-products"' in markup
+    assert 'href="#featured-products"' in markup
+    if empty_search:
+        assert any("No toys match" in message.value for message in app.info)
+    else:
+        assert "1 available product</span>" in markup
+        assert "View Details" in [button.label for button in app.button]
+    assert app.session_state.filtered_state.get("store_product_detail") is None
 
 
 @pytest.mark.parametrize("missing_resource", ["address", "payment"])
@@ -371,7 +406,7 @@ def test_checkout_confirmation_continue_shopping_navigation(monkeypatch) -> None
 
     assert not app.exception
     assert app.session_state["customer_navigation"] == "Home / Shop"
-    assert any("Toys for Brighter Days" in item.value for item in app.markdown)
+    assert any('class="rm-shop-hero"' in item.value for item in app.markdown)
     assert "checkout_confirmation" not in app.session_state
 
 

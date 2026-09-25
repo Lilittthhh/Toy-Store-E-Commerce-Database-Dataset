@@ -30,20 +30,23 @@ from frontend.views import (
     website_traffic,
     notification_test,
     audit_trail,
+    public_storefront,
 )
-from frontend.views.unified_auth import render as render_unified_auth
 from frontend.ui import (
-    apply_anonymous_theme,
     apply_customer_theme,
     apply_theme,
+    customer_site_footer,
     page_header,
+    render_mobile_topbar,
     render_sidebar_brand,
+    render_sidebar_footer,
+    render_staff_workspace_banner,
 )
 
 
 st.set_page_config(
     page_title="RetailMetrics",
-    page_icon="📊",
+    page_icon="🧸",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -56,8 +59,11 @@ sync_customer_browser_cookie()
 
 def anonymous_app() -> None:
     client = APIClient()
-    apply_anonymous_theme()
-    render_unified_auth(client)
+    apply_customer_theme()
+    st.markdown('<span class="rm-anonymous-shell-marker"></span>', unsafe_allow_html=True)
+    public_storefront.render(client)
+    if st.session_state.get(public_storefront.PUBLIC_VIEW_KEY, "shop") != "auth":
+        customer_site_footer()
 
 
 def authenticated_app() -> None:
@@ -74,8 +80,12 @@ def authenticated_app() -> None:
         return
 
     role = user["role"]
+    st.markdown(f'<span class="rm-staff-shell-marker rm-staff-role-{role}"></span>', unsafe_allow_html=True)
     render_sidebar_brand(user["username"], role)
     selected = render_staff_navigation(role)
+    render_sidebar_footer()
+    render_mobile_topbar(selected, user["username"], role)
+    render_staff_workspace_banner(role)
 
     if selected == "Dashboard":
         dashboard.render(client)
@@ -87,8 +97,6 @@ def authenticated_app() -> None:
         entity_views.render(client, "products")
     elif selected == "Orders":
         entity_views.render(client, "orders")
-    elif selected == "Refunds":
-        entity_views.render(client, "refunds")
     elif selected == "Refund Requests":
         refund_requests.render(client)
     elif selected == "Website Sessions":
@@ -139,13 +147,17 @@ def customer_authenticated_app() -> None:
         st.rerun()
         return
 
-    render_sidebar_brand(customer["email"], "customer")
+    st.markdown('<span class="rm-customer-shell-marker"></span>', unsafe_allow_html=True)
     apply_pending_customer_navigation()
-    selected = render_customer_navigation()
-    st.sidebar.markdown(
-        '<div class="rm-customer-sidebar-footer">♥ Making every toy bring a little more joy.</div>',
-        unsafe_allow_html=True,
-    )
+    if "customer_cart_count" not in st.session_state:
+        try:
+            cart = client.get("/customer/cart")
+            st.session_state.customer_cart_count = int(cart.get("total_quantity", 0))
+        except APIError:
+            st.session_state.customer_cart_count = 0
+    selected = render_customer_navigation(customer, st.session_state.customer_cart_count)
+    if st.session_state.pop("guest_cart_transfer_warning", False):
+        st.warning("You are signed in, but one bag item could not be moved. Please add it again from the shop.")
     if selected not in {"Cart", "My Account"}:
         st.session_state.pop("resume_checkout_after_account", None)
     if selected == "Home / Shop":
@@ -165,6 +177,7 @@ def customer_authenticated_app() -> None:
                 pass
             customer_sign_out()
             st.rerun()
+    customer_site_footer()
 
 
 if st.session_state.customer_access_token and st.session_state.active_portal != "staff":
